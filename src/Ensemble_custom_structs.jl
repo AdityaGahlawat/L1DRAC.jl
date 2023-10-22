@@ -1,5 +1,5 @@
-if myid() == 1
-    println(">>> Loading custom structs")
+if myid() ≠ 1
+    println("I'm loading custom structs")
 end
 # Simulation paramters
 mutable struct sim_params

@@ -1,6 +1,9 @@
-if myid() == 1
-    println(">>> Loading functions")
+# FUNCTIONS
+
+if myid() ≠ 1
+    println("I'm loading functions")
 end
+
 # Function: constructing the final parameter set
 function construct_total_params(p::sim_params, dyns::dynamics)
     if myid() == 1
