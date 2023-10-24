@@ -38,7 +38,6 @@ function construct_total_params(p::sim_params, dyns::dynamics)
 end
 
 # Function: constructing initial conditions from the initial condition distribution
-export construct_init_matrix
 function construct_init_matrix(d::prepared_params, dyns::dynamics)
     if myid() == 1
         println("---> Sampling initial conditions")
@@ -55,7 +54,6 @@ function construct_init_matrix(d::prepared_params, dyns::dynamics)
 end
 
 # Function: prob_func
-export prob_func
 function prob_func(prob::SDEProblem, d::prepared_params, init_matrix::Array)
     if myid() == 1
         println("---> Constructing prob_func to supply sampled initial conditions to the solver")
@@ -68,7 +66,6 @@ function prob_func(prob::SDEProblem, d::prepared_params, init_matrix::Array)
 end
 
 # Function: constructing SDE problem
-export construct_SDE_prob
 function construct_SDE_prob(dyns::dynamics, p::sim_params)
     d::prepared_params = construct_total_params(p::sim_params, dyns::dynamics) 
 
@@ -86,3 +83,26 @@ function construct_SDE_prob(dyns::dynamics, p::sim_params)
 
     return SDE_prob
 end
+
+# Function: run a small instance to compile the system dynamics
+function __init__DracGpuSims(dyns::dynamics, p::sim_params)
+    
+    if myid() == 1
+        @info "Compiling Dynamics"
+    end
+
+    d::prepared_params = construct_total_params(p::sim_params, dyns::dynamics) 
+
+    # Determining dims of diffusion matrix
+    diffusion_dims = size(dyns.diffusion(zeros(d.Nₓ), nothing, 0))
+    
+
+    if p.Nₓ == 1
+        SDE_prob = SDEProblem(dyns.drift, dyns.diffusion, d.u0, d.tspan, noise_rate_prototype = noise_rate_prototype = (@SMatrix [0])) # Noise_rate_protype takes as its argument a matrix of zeros of the same dimension as the diffusion matrix
+    else
+        SDE_prob = SDEProblem(dyns.drift, dyns.diffusion, d.u0, d.tspan, noise_rate_prototype = noise_rate_prototype = (@SMatrix zeros(diffusion_dims[1], diffusion_dims[2]))) # Noise_rate_protype takes as its argument a matrix of zeros of the same dimension as the diffusion matrix
+    end
+
+    return SDE_prob
+end
+
