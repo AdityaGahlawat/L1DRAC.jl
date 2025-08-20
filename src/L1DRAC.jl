@@ -1,19 +1,10 @@
 module L1DRAC
 
+using LinearAlgebra
 
-# Exports
 
-# #
+export nominal_vector_fields
 
-## Include main files
-include("Libraries.jl")
-
-function test_simple()
-    println("revise ACTUALLY works")
-end
-
-function without_export()
-    println("This function is not exported, so it won't be available outside the module.")
-end
+include("types.jl")
 
 end
