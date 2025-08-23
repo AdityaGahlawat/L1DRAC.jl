@@ -32,3 +32,10 @@ struct InitialDistributions
     true_ξ₀::Any
 end
 init_dist(nominal_ξ₀::Any, true_ξ₀::Any) = InitialDistributions(nominal_ξ₀, true_ξ₀)
+# Nominal System
+struct NominalSystem{SysDims, NominalVectorFields, InitialDistributions}
+    sys_dims::SysDims
+    nom_vec_fields::NominalVectorFields
+    init_dists::InitialDistributions
+end
+nom_sys(sys_dims::SysDims, nom_vec_fields::NominalVectorFields, init_dists::InitialDistributions) = NominalSystem(sys_dims, vec_fields, init_dists)
