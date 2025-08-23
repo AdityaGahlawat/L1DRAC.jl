@@ -1,3 +1,11 @@
+## Simulation Parameters 
+struct SimParams
+    tspan::Tuple{Float64, Float64}
+    Δₜ::Float64
+    Ntraj::Int  
+end
+sim_params(tspan::Tuple{Float64, Float64}, Δₜ::Float64, Ntraj::Int) = SimParams(tspan, Δₜ, Ntraj)
+## System Dimensions
 struct SysDims
     n::Int
     m::Int
@@ -18,3 +26,9 @@ struct UncertainVectorFields
     Λσ::Function
 end
 uncertain_vector_fields(Λμ::Function, Λσ::Function) = UncertainVectorFields(Λμ, Λσ)
+## Initial distributions 
+struct InitialDistributions
+    nominal_ξ₀::Any
+    true_ξ₀::Any
+end
+init_dist(nominal_ξ₀::Any, true_ξ₀::Any) = InitialDistributions(nominal_ξ₀, true_ξ₀)
