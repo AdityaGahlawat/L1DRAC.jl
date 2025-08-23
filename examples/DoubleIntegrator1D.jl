@@ -96,7 +96,7 @@ function DeterministicPlot()
 	
 	PositionPhasePlot = plot(sol[1,:], sol[2,:], linewidth = 2, label=false, xlabel = L"X^\star_{t,1}", ylabel = L"X^\star_{t,2}" )
 	
-	# plot!(PositionPhasePlot, map(t -> Ref(t)[1], sol.t), map(t -> Ref(t)[2], sol.t), linewidth = 2, label=[L"p_{ref_{t,1}}" L"p_{ref_{t,2}}"])
+	
 	
 	
 	
