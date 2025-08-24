@@ -1,16 +1,13 @@
+
 ## Test Functions for development and debugging
-
-module Testbed
-
 using Plots
 using LaTeXStrings
 using DifferentialEquations
-using LinearAlgebra
 using UnPack
-import StochasticDiffEq as SDE
+# import StochasticDiffEq as SDE
 
 
-export DeterministicPlot
+
 
 # For quick evaluations
 function mytest() 
@@ -67,13 +64,23 @@ function DeterministicPlot(simulation_parameters, nominal_components, trck_traj)
 	return mainplot
 end
 
-function StochasticSim()
-	@unpack tspan, Δₜ, Ntraj = simulation_parameters
-	@unpack f, g, g_perp, p = nominal_components
+
+function nomsys_simplot(sol)
+	l = @layout [a; b]
+
+	PositionPhasePlot = plot(sol[1,:], sol[2,:], linewidth = 2, label=false, xlabel = L"X^\star_{t,1}", ylabel = L"X^\star_{t,2}" )
+	
+	PositionTimePlot = plot(sol.t, sol[1,:], color=1, linewidth = 2, label=L"X^\star_{t,1}")
+	plot!(PositionTimePlot, sol.t, sol[2,:], color =2, linewidth = 2, label=L"X^\star_{t,2}")
+
+	mainplot = plot(PositionPhasePlot, PositionTimePlot; layout = l, size=(600,800))
+	
+	return mainplot
 end
 
 function driftsetup!()
 	@show dX[1:n] = f(t,X)[1:n] 
 end
 
-end
+
+

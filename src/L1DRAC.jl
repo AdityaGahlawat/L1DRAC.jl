@@ -1,6 +1,8 @@
 module L1DRAC
 
 using LinearAlgebra
+using DifferentialEquations
+using UnPack
 
 
 export sim_params
@@ -9,8 +11,9 @@ export nominal_vector_fields
 export uncertain_vector_fields
 export init_dist
 export nom_sys
-export _nominal_drift!
-export _nominal_diffusion!
+export nominal_simulation
+
+
 
 include("types.jl")
 include("simfunctions.jl")

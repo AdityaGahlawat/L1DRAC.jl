@@ -1,15 +1,12 @@
 ## L1DRAC for a 1D Double Integrator
 using Revise
-using InteractiveErrors
-
-
 
 #### MAIN CODE ####
 using L1DRAC
 using LinearAlgebra
 using Distributions
 using ControlSystemsBase
-using UnPack
+
 
 
 ################################
@@ -45,6 +42,9 @@ function f(t,x)
     K = stbl_cntrl()
     return (A-B*K)*x + B*K*trck_traj(t)
 end
+
+
+
 # f(t,x) = [x[2]; 0]
 g(t) = [0; 1]
 g_perp(t) = [1; 0];
@@ -55,7 +55,7 @@ p(t,x) = 0.08*I(2)
 Λσ(t,x) = [0 0; 0 0]
 
 # Initial distributions
-nominal_ξ₀ = MvNormal(zeros(2), 5*I(2))
+nominal_ξ₀ = MvNormal(zeros(2), 0.1*I(2))
 true_ξ₀ = MvNormal(10*ones(2), 0.1*I(2))
 
 ###################################################################
@@ -69,17 +69,16 @@ uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
 nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
-
+nominal_sol = nominal_simulation(simulation_parameters, nominal_system)
 
 
 ##### TESTS ##### 
 include("../src/devtests.jl")
-using .Testbed
+
 
 DeterministicPlot(simulation_parameters, nominal_components, trck_traj)
 
 
-function StochasticSim()
-    @unpack tspan, Δₜ, Ntraj = simulation_parameters
-    @unpack f, g, g_perp, p = nominal_components
-end
+nomsys_simplot(nominal_sol)
+
+
