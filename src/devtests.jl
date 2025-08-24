@@ -1,16 +1,13 @@
+
 ## Test Functions for development and debugging
-
-module Testbed
-
 using Plots
 using LaTeXStrings
 using DifferentialEquations
-using LinearAlgebra
 using UnPack
-import StochasticDiffEq as SDE
+# import StochasticDiffEq as SDE
 
 
-export DeterministicPlot
+
 
 # For quick evaluations
 function mytest() 
@@ -67,13 +64,47 @@ function DeterministicPlot(simulation_parameters, nominal_components, trck_traj)
 	return mainplot
 end
 
-function StochasticSim()
+function stochastic_simulation(simulation_parameters, nominal_system)
 	@unpack tspan, Δₜ, Ntraj = simulation_parameters
-	@unpack f, g, g_perp, p = nominal_components
+	@unpack n, m, d = getfield(nominal_system, :sys_dims)
+	@unpack f, g, g_perp, p = getfield(nominal_system, :nom_vec_fields)
+	@unpack nominal_ξ₀, true_ξ₀ = getfield(nominal_system, :init_dists)
+
+	nom_init = rand(nominal_ξ₀)
+
+	function _nominal_drift!(dX, X, params, t)
+		dX[1:n] = f(t,X)[1:n]
+	end
+	function _nominal_diffusion!(dX, X, params, t)
+		for i in 1:n
+			for j in 1:d
+				dX[i,j] = p(t,X)[i,j]
+			end
+		end
+	end
+	
+	#Define the problem
+	nominal_problem = SDEProblem(_nominal_drift!, _nominal_diffusion!, nom_init, tspan, noise_rate_prototype = zeros(n, d))
+	nominal_sol = solve(nominal_problem, EM(), dt=Δₜ)
+	return nominal_sol
+end
+
+function nomsys_simplot(sol)
+	l = @layout [a; b]
+
+	PositionPhasePlot = plot(sol[1,:], sol[2,:], linewidth = 2, label=false, xlabel = L"X^\star_{t,1}", ylabel = L"X^\star_{t,2}" )
+	
+	PositionTimePlot = plot(sol.t, sol[1,:], color=1, linewidth = 2, label=L"X^\star_{t,1}")
+	plot!(PositionTimePlot, sol.t, sol[2,:], color =2, linewidth = 2, label=L"X^\star_{t,2}")
+
+	mainplot = plot(PositionPhasePlot, PositionTimePlot; layout = l, size=(600,800))
+	
+	return mainplot
 end
 
 function driftsetup!()
 	@show dX[1:n] = f(t,X)[1:n] 
 end
 
-end
+
+
