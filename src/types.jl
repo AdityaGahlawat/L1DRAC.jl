@@ -39,3 +39,11 @@ struct NominalSystem{SysDims, NominalVectorFields, InitialDistributions}
     init_dists::InitialDistributions
 end
 nom_sys(sys_dims::SysDims, nom_vec_fields::NominalVectorFields, init_dists::InitialDistributions) = NominalSystem(sys_dims, nom_vec_fields, init_dists)
+# True System 
+struct TrueSystem{SysDims, NominalVectorFields, UncertainVectorFields, InitialDistributions}
+    sys_dims::SysDims
+    nom_vec_fields::NominalVectorFields
+    unc_vec_fields::UncertainVectorFields
+    init_dists::InitialDistributions
+end
+true_sys(sys_dims::SysDims, nom_vec_fields::NominalVectorFields, unc_vector_fields::UncertainVectorFields, init_dists::InitialDistributions) = TrueSystem(sys_dims, nom_vec_fields, unc_vector_fields, init_dists)
