@@ -11,7 +11,8 @@ export nominal_vector_fields
 export uncertain_vector_fields
 export init_dist
 export nom_sys
-export nominal_simulation
+export true_sys
+export system_simulation
 
 
 
