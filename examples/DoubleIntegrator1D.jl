@@ -69,7 +69,7 @@ uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
 nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
-
+nominal_sol = nominal_simulation(simulation_parameters, nominal_system)
 
 
 ##### TESTS ##### 
@@ -78,7 +78,7 @@ include("../src/devtests.jl")
 
 DeterministicPlot(simulation_parameters, nominal_components, trck_traj)
 
-nominal_sol = stochastic_simulation(simulation_parameters, nominal_system)
+
 nomsys_simplot(nominal_sol)
 
 
