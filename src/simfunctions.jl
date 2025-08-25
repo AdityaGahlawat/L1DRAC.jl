@@ -48,7 +48,7 @@ function system_simulation(simulation_parameters, nominal_system::NominalSystem;
 	return nominal_sol
 end
 # method 2: simulation of true system
-function system_simulation(simulation_parameters, true_system::TrueSystem)
+function system_simulation(simulation_parameters, true_system::TrueSystem; kwargs...)
 	@unpack tspan, Δₜ, Ntraj = simulation_parameters
 	@unpack n, m, d = getfield(true_system, :sys_dims)
 	@unpack f, g, g_perp, p = getfield(true_system, :nom_vec_fields)
@@ -57,6 +57,17 @@ function system_simulation(simulation_parameters, true_system::TrueSystem)
 	true_init = rand(true_ξ₀)	
 	#Define the problem
 	true_problem = SDEProblem(_true_drift!, _true_diffusion!, true_init, tspan, noise_rate_prototype = zeros(n, d))
-	true_sol = solve(true_problem, EM(), dt=Δₜ)
+	# Solve the problem
+	if haskey(kwargs, :simtype) && kwargs[:simtype] == :ensemble
+        println("Running Ensemble Simulation of True System")
+        function true_prob_func(prob, i, repeat)
+            remake(prob, u0 = rand(true_ξ₀))
+        end
+        ensemble_true_problem = EnsembleProblem(true_problem, prob_func = true_prob_func)
+        true_sol = solve(ensemble_true_problem, EM(), dt=Δₜ, trajectories = Ntraj)
+    else
+        println("Running Single Trajectory Simulation of True System") 
+	    true_sol = solve(true_problem, EM(), dt=Δₜ)
+    end
 	return true_sol
 end

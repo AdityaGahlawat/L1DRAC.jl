@@ -43,11 +43,38 @@ function simplot(sol::EnsembleSolution; xlabelstring::LaTeXString, ylabelstring:
 		plot!(PositionPhasePlot, sol[i][1,:], sol[i][2,:], color=1, linewidth = lw, linealpha = lα,  label=false)
 	end
 	###
-	PositionTimePlot = plot(sol[1].t, sol[1][1,:], color=1, linewidth = 2, label=xlabelstring)
-	plot!(PositionTimePlot, sol[1].t, sol[1][2,:], color =2, linewidth = 2, label=ylabelstring)
+	PositionTimePlot = plot(sol[1].t, sol[1][1,:], color=1, linewidth = lw, linealpha = lα, label=xlabelstring)
+	plot!(PositionTimePlot, sol[1].t, sol[1][2,:], color =2, linewidth = lw, linealpha = lα, label=ylabelstring)
     for j = 1:Main.n
 		for i = 2:Main.Ntraj
 			plot!(PositionTimePlot, sol[i].t, sol[i][j,:], color=j, linewidth = lw, linealpha = lα,  label=false)
+		end
+	end
+    ###
+	mainplot = plot(PositionPhasePlot, PositionTimePlot; layout = l, size=(600,800))
+	return mainplot
+end
+
+function simplot(sol1::EnsembleSolution, sol2::EnsembleSolution; labelstring1::LaTeXString, labelstring2::LaTeXString)
+    lw = 1.5 # linewidth
+	lα = 0.1 # linealpha
+	l = @layout [a; b]
+    ###
+    PositionPhasePlot = plot(sol1[1][1,:], sol1[1][2,:], color=1, linewidth = lw, linealpha = lα, linestyle = :dash, label=labelstring1)
+    plot!(PositionPhasePlot, sol2[1][1,:], sol2[1][2,:], color=2, linewidth = lw, linealpha = lα, label=labelstring2)
+    for i = 2:Main.Ntraj
+		plot!(PositionPhasePlot, sol1[i][1,:], sol1[i][2,:], color=1, linewidth = lw, linealpha = lα,  label=false)
+        plot!(PositionPhasePlot, sol2[i][1,:], sol2[i][2,:], color=2, linewidth = lw, linealpha = lα,  label=false)
+	end
+	###
+	PositionTimePlot = plot(sol1[1].t, sol1[1][1,:], color=1, linewidth = lw, linealpha = lα, label=false)
+	plot!(PositionTimePlot, sol1[1].t, sol1[1][2,:], color=1, linewidth = lw, linealpha = lα, label=false)
+    plot!(PositionTimePlot, sol2[1].t, sol2[1][1,:], color=2, linewidth = lw, linealpha = lα, label=false)
+	plot!(PositionTimePlot, sol2[1].t, sol2[1][2,:], color=2, linewidth = lw, linealpha = lα, label=false, xlabel = L"Time~\rightarrow")
+    for j = 1:Main.n
+		for i = 2:Main.Ntraj
+			plot!(PositionTimePlot, sol1[i].t, sol1[i][j,:], color=1, linewidth = lw, linealpha = lα,  label=false)
+            plot!(PositionTimePlot, sol2[i].t, sol2[i][j,:], color=2, linewidth = lw, linealpha = lα,  label=false)
 		end
 	end
     ###

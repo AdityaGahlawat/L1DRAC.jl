@@ -14,7 +14,7 @@ using ControlSystemsBase
 # Simulation Parameters
 tspan = (0.0, 5.0)
 Δₜ = 0.01 # Time step size
-Ntraj = 1000 # Number of trajectories in ensemble simulation
+Ntraj = 100 # Number of trajectories in ensemble simulation
 
 # System Dimensions 
 n=2
@@ -46,12 +46,12 @@ g_perp(t) = [1; 0];
 p(t,x) = 0.08*I(2)
 
 # Uncertain Vector Fields
-Λμ(t,x) = [sin(x[1]); 10+norm(x)] 
-Λσ(t,x) = [cos(x[2]) 0; 0 sqrt(norm(x))]
+Λμ(t,x) = [1+sin(x[1]); norm(x)] 
+Λσ(t,x) = [0.1+sin(x[2]) 0; 0 0.1+cos(x[2])+sqrt(norm(x))]
 
 # Initial distributions
-nominal_ξ₀ = MvNormal(zeros(2), 0.1*I(2))
-true_ξ₀ = MvNormal(1*ones(2), 10*I(2))
+nominal_ξ₀ = MvNormal(zeros(2), 0.01*I(2))
+true_ξ₀ = MvNormal([-1.; 2.], 0.01*I(2))
 
 ###################################################################
 ## COMPUTATION START
@@ -66,10 +66,14 @@ initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
 true_system = true_sys(system_dimensions, nominal_components, uncertain_components, initial_distributions)
 
+# Single Trajectories
 nominal_sol = system_simulation(simulation_parameters, nominal_system)
-ensemble_nominal_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble)
-
 true_sol = system_simulation(simulation_parameters, true_system)
+
+# Ensemble Trajectories
+ensemble_nominal_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble)
+ensemble_true_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble)
+
 
 ###################### PLOTS #########################
 include("ex1plotfunctions.jl")
@@ -81,6 +85,8 @@ simplot(nominal_sol, true_sol; labelstring1 = L"X^\star_{t}", labelstring2 = L"X
 
 # Ensemble Trajectories 
 simplot(ensemble_nominal_sol; xlabelstring = L"X^\star_{t,1}", ylabelstring = L"X^\star_{t,2}")
+simplot(ensemble_true_sol; xlabelstring = L"X_{t,1}", ylabelstring = L"X_{t,2}")
+simplot(ensemble_nominal_sol, ensemble_true_sol; labelstring1 = L"X^\star_{t}", labelstring2 = L"X_{t}")
 
 ###################### TESTS #########################
 # include("../src/devtests.jl")
