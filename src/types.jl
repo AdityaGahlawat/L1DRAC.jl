@@ -47,3 +47,16 @@ struct TrueSystem{SysDims, NominalVectorFields, UncertainVectorFields, InitialDi
     init_dists::InitialDistributions
 end
 true_sys(sys_dims::SysDims, nom_vec_fields::NominalVectorFields, unc_vector_fields::UncertainVectorFields, init_dists::InitialDistributions) = TrueSystem(sys_dims, nom_vec_fields, unc_vector_fields, init_dists)
+## Total Concatenated State Vector
+mutable struct ConcatState 
+    X::Vector{Float64}
+    Xhat::Vector{Float64}
+end
+concat_state(X::Vector{Float64}, Xhat::Vector{Float64}) = ConcatState(X, Xhat)
+
+struct L1DRACParams
+    ω::Float64
+    Tₛ::Float64
+    λₛ::Float64
+end
+drac_params(ω::Float64, Tₛ::Float64, λₛ::Float64) = L1DRACParams(ω, Tₛ, λₛ)

@@ -2,6 +2,8 @@
 using Plots
 using LaTeXStrings
 
+###############################################
+## Multiple Dispatch
 # Single system, single sample path
 function simplot(sol::RODESolution; xlabelstring::LaTeXString, ylabelstring::LaTeXString)
 	l = @layout [a; b]
@@ -54,7 +56,7 @@ function simplot(sol::EnsembleSolution; xlabelstring::LaTeXString, ylabelstring:
 	mainplot = plot(PositionPhasePlot, PositionTimePlot; layout = l, size=(600,800))
 	return mainplot
 end
-
+# comparison of systems, Ensemble
 function simplot(sol1::EnsembleSolution, sol2::EnsembleSolution; labelstring1::LaTeXString, labelstring2::LaTeXString)
     lw = 1.5 # linewidth
 	lα = 0.1 # linealpha
@@ -81,3 +83,4 @@ function simplot(sol1::EnsembleSolution, sol2::EnsembleSolution; labelstring1::L
 	mainplot = plot(PositionPhasePlot, PositionTimePlot; layout = l, size=(600,800))
 	return mainplot
 end
+###############################################
