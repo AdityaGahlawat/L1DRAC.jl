@@ -100,15 +100,24 @@ end
 
 function mytest()
 
-    @show Z = DummyStruct(ones(2), ones(2))
-    @show SD = DummyStruct(zeros(2), zeros(2))
+    Z = DummyStruct(ones(2), ones(2))
+    D = DummyStruct(zeros(2), zeros(2))
 
-    function sys!(SD,Z)
-        SD.x = Z.x
-        return SD
+
+
+    function sys!(D,Z)
+        D.x = Z.x
+        return D
     end
-    sys!(SD,Z)
-    @show SD.x
+    sys!(D,Z)
+    D.x
+
+    X = [1., 4]
+    Xhat = [2., 5]
+    Z = concat_state(X, Xhat)
+    D = concat_state(zeros(2), zeros(2))
+    params = [true_system, L1params]
+    L1DRAC._L1_drift!(D, Z, params, 0.1)
 end
 mytest()
 

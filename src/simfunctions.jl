@@ -50,7 +50,7 @@ function _true_diffusion!(dX, X, params, t)
 end
 
 ##### MAIN SIMULATION FUNCTION (Multiple Dispatch) #####
-# method 1: simulation of nominal system
+# METHOD 1: simulation of nominal system
 function system_simulation(simulation_parameters, nominal_system::NominalSystem; kwargs...)
 	prog_steps = 1000
 	@unpack tspan, Δₜ, Ntraj = simulation_parameters
@@ -62,20 +62,20 @@ function system_simulation(simulation_parameters, nominal_system::NominalSystem;
     nominal_problem = SDEProblem(_nominal_drift!, _nominal_diffusion!, nom_init, tspan, noise_rate_prototype = zeros(n, d), params)
     # Solve the problem
     if haskey(kwargs, :simtype) && kwargs[:simtype] == :ensemble
-        println("Running Ensemble Simulation of Nominal System")
+        println("---Running Ensemble Simulation of Nominal System")
         function nominal_prob_func(prob, i, repeat)
             remake(prob, u0 = rand(nominal_ξ₀))
         end
         ensemble_nominal_problem = EnsembleProblem(nominal_problem, prob_func = nominal_prob_func)
         nominal_sol = solve(ensemble_nominal_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps)
     else
-        println("Running Single Trajectory Simulation of Nominal System") 
+        println("---Running Single Trajectory Simulation of Nominal System") 
 	    nominal_sol = solve(nominal_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps)
     end
+	println("---Done---")
 	return nominal_sol
 end
-
-# method 2: simulation of true system
+# METHOD 2: simulation of true system
 function system_simulation(simulation_parameters, true_system::TrueSystem; kwargs...)
 	prog_steps = 1000
 	@unpack tspan, Δₜ, Ntraj = simulation_parameters
@@ -87,15 +87,16 @@ function system_simulation(simulation_parameters, true_system::TrueSystem; kwarg
 	true_problem = SDEProblem(_true_drift!, _true_diffusion!, true_init, tspan, noise_rate_prototype = zeros(n, d), params)
 	# Solve the problem
 	if haskey(kwargs, :simtype) && kwargs[:simtype] == :ensemble
-        println("Running Ensemble Simulation of True System")
+        println("---Running Ensemble Simulation of True System")
         function true_prob_func(prob, i, repeat)
             remake(prob, u0 = rand(true_ξ₀))
         end
         ensemble_true_problem = EnsembleProblem(true_problem, prob_func = true_prob_func)
         true_sol = solve(ensemble_true_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps)
     else
-        println("Running Single Trajectory Simulation of True System") 
+        println("---Running Single Trajectory Simulation of True System") 
 	    true_sol = solve(true_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps)
     end
+	println("---Done---")
 	return true_sol
 end
