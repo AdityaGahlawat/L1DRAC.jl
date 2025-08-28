@@ -47,11 +47,14 @@ end
 g(t) = [0; 1]
 g_perp(t) = [1; 0];
 p(t,x) = 0.08*I(2)
+# p(t,x) = zeros(2,2)
 nominal_components = nominal_vector_fields(f, g, g_perp, p)
 
 # Uncertain Vector Fields
 Λμ(t,x) = [1+sin(x[1]); norm(x)] 
 Λσ(t,x) = [0.1+sin(x[2]) 0; 0 0.1+cos(x[2])+sqrt(norm(x))]
+# Λμ(t,x) = zeros(2)
+# Λσ(t,x) = zeros(2,2)
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
 # Initial distributions
@@ -74,6 +77,7 @@ true_system = true_sys(system_dimensions, nominal_components, uncertain_componen
 # Single Trajectories
 nominal_sol = system_simulation(simulation_parameters, nominal_system);
 true_sol = system_simulation(simulation_parameters, true_system);
+L1_sol = system_simulation(simulation_parameters, true_system, L1params);
 
 # Ensemble Trajectories
 ensemble_nominal_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
@@ -93,32 +97,21 @@ simplot(ensemble_true_sol; xlabelstring = L"X_{t,1}", ylabelstring = L"X_{t,2}")
 simplot(ensemble_nominal_sol, ensemble_true_sol; labelstring1 = L"X^\star_{t}", labelstring2 = L"X_{t}")
 
 ###################### TESTS #########################
-mutable struct DummyStruct
-    x::Vector{Float64}
-    y::Vector{Float64}
-end
+
 
 function mytest()
-
-    Z = DummyStruct(ones(2), ones(2))
-    D = DummyStruct(zeros(2), zeros(2))
-
-
-
-    function sys!(D,Z)
-        D.x = Z.x
-        return D
-    end
-    sys!(D,Z)
-    D.x
-
-    X = [1., 4]
-    Xhat = [2., 5]
-    Z = concat_state(X, Xhat)
-    D = concat_state(zeros(2), zeros(2))
-    params = [true_system, L1params]
-    L1DRAC._L1_drift!(D, Z, params, 0.1)
+    X = rand(n)
+    Xhat = rand(n) 
+    dX = rand(n,d)
+    dXhat = rand(n,d)
+    Z = vcat(X, Xhat)
+    dZ = vcat(dX, dXhat)
+    L1DRAC._L1_diffusion!(dZ, Z, (true_system, L1params), 0.1)
 end
 mytest()
 
+
+Pred_X, Pred_Xhat = predictor_test(simulation_parameters, true_system, L1params);
+
+predictorplot(L1_sol; labelstring1 = L"X_{t}", labelstring2 = L"predictor~\hat{X}_{t}")
 

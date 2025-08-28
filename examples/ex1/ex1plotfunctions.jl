@@ -84,3 +84,21 @@ function simplot(sol1::EnsembleSolution, sol2::EnsembleSolution; labelstring1::L
 	return mainplot
 end
 ###############################################
+function predictorplot(sol::RODESolution; labelstring1::LaTeXString, labelstring2::LaTeXString)
+	l = @layout [a; b]
+	lα = 0.7
+    ### LEGEND ###
+	# system state = sol[1:n,:]
+	# predictor state = sol[n+1:2n,:]
+	##############
+    PositionPhasePlot = plot(sol[1,:], sol[2,:], color=1, linewidth = 2, label = labelstring1, linealpha = lα)
+    plot!(PositionPhasePlot, sol[3,:], sol[4,:], color=2, linewidth = 2, label = labelstring2, linealpha = lα)
+	# ###
+	PositionTimePlot = plot(sol.t, sol[1,:], color=1, linewidth = 2, label = false, linealpha = lα)
+	plot!(PositionTimePlot, sol.t, sol[2,:], color=1, linewidth = 2, label = labelstring1, linealpha = lα)
+    plot!(PositionTimePlot, sol.t, sol[3,:], color=2, linewidth = 3, label = false, linestyle = :dash, linealpha = lα)
+	plot!(PositionTimePlot, sol.t, sol[4,:], color=2, linewidth = 3, label = labelstring2, linestyle = :dash, linealpha = lα, xlabel = L"Time~\rightarrow")
+    # ###
+	mainplot = plot(PositionPhasePlot, PositionTimePlot; layout = l, size=(600,800))
+	return mainplot
+end

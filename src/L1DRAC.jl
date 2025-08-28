@@ -20,6 +20,8 @@ export true_sys
 export system_simulation
 export concat_state
 export drac_params
+export predictor_test
+
 
 include("types.jl")
 include("simfunctions.jl")
