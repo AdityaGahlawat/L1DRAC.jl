@@ -77,7 +77,7 @@ true_system = true_sys(system_dimensions, nominal_components, uncertain_componen
 # Single Trajectories
 nominal_sol = system_simulation(simulation_parameters, nominal_system);
 true_sol = system_simulation(simulation_parameters, true_system);
-L1_sol = system_simulation(simulation_parameters, true_system, L1params);
+L1_sol, adaptive_estimates = system_simulation(simulation_parameters, true_system, L1params);
 
 # Ensemble Trajectories
 ensemble_nominal_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
