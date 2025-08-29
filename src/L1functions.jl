@@ -1,18 +1,32 @@
 # L1-DRAC specific functions
-function _L1_drift!(dZ, Z, (true_system, L1params), t; kwargs...)
+# Algebraic Predictor 
+# To be called within _L1_drift! 
+function _adaptation_law!(X, Xhat, Xtilde_Tₛ, t, n, λₛ, Tₛ) 
+    iₐ(t) = floor(t/Tₛ) # index for the piecewise interval
+    if iₐ(t)*Tₛ == t 
+        Xtilde_Tₛ = X - Xhat 
+        Λhat = λₛ*(1-exp(λₛ*Tₛ))*Xtilde_Tₛ
+    else 
+        Λhat = λₛ*(1-exp(λₛ*Tₛ))*Xtilde_Tₛ
+    end 
+    return Λhat, Xtilde_Tₛ
+end
+# Differential Equation Components
+function _L1_drift!(dZ, Z, (true_system, L1params, _adaptation_law), t; kwargs...)
     @unpack n, m = getfield(true_system, :sys_dims)
-	@unpack f, g = getfield(true_system, :nom_vec_fields)
+	@unpack f, g, g_perp = getfield(true_system, :nom_vec_fields)
     @unpack Λμ = getfield(true_system, :unc_vec_fields)
-    @unpack λₛ = L1params
+    @unpack λₛ, Tₛ = L1params
     # Need the following unrefined concatenation for StaticArrays and GPU compatibility
     X = Z[1:n] 
     Xhat = Z[n+1:2n]
     ## Placeholders
     m == 1 ? uₐ = 0.0 : uₐ = zeros(m)   
-    n == 1 ? Λhat = 0. : Λhat = zeros(n) 
+    n == 1 ? Λhat = 0. : Λhat = zeros(n)
+    adapttest =  _adaptation_law!(X, Xhat, zeros(n), t, n, λₛ, Tₛ)
     ##########################
     # System
-    dX = f(t, X) + g(t)*uₐ + Λμ(t,X) 
+    dX = f(t, X) + g(t)*uₐ + Λμ(t,X)  
     # Predictor
     if haskey(kwargs, :predictor_mode) && kwargs[:predictor_mode] == :test
         # ---Test Mode: Passing Λμ(t,X) to the Predictor---"
@@ -48,6 +62,7 @@ function _L1_diffusion!(dZ, Z, (true_system, L1params), t; kwargs...)
 		end
 	end
 end
+####################################################################################
 # METHOD 3: simulation of L1-DRAC closed-loop system
 # Methods 1 and 2 are in \src/simfunctions.jl
 function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem, L1params::L1DRACParams; kwargs...)
@@ -58,7 +73,7 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
 	true_init = rand(true_ξ₀)
     L1_init = vcat(true_init, true_init) # System and predictor initialized by the same initial condition
 	#Define the problem
-	L1_problem = SDEProblem(_L1_drift!, _L1_diffusion!, L1_init, tspan, noise_rate_prototype = zeros(2n, d), (true_system, L1params))
+	L1_problem = SDEProblem(_L1_drift!, _L1_diffusion!, L1_init, tspan, noise_rate_prototype = zeros(2n, d), (true_system, L1params, _adaptation_law))
 	# Solve the problem
 	if haskey(kwargs, :simtype) && kwargs[:simtype] == :ensemble
         println("---Running Ensemble Simulation of L1 System")
@@ -75,7 +90,9 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
 	println("---Done---")
 	return L1_sol
 end
+####################################################################################
 # Test Functions
+# Predictor test 
 function predictor_test(simulation_parameters::SimParams, true_system::TrueSystem, L1params::L1DRACParams)
 	@warn "---Predictor Test Mode Active---"
     prog_steps = 1000
@@ -91,10 +108,10 @@ function predictor_test(simulation_parameters::SimParams, true_system::TrueSyste
 	#Define the problem
     L1_problem = SDEProblem(_predictor_test_drift!, _predictor_test_diffusion!, L1_init, tspan, noise_rate_prototype = zeros(2n, d), (true_system, L1params))
     # Solve the problem
-    L1_sol = solve(L1_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps)
-    isequal(L1_sol[1:n,:], L1_sol[n+1:2n,:]) == true ? (@info "Predictor Test: PASSED") : (@error "Predictor Test FAILED: Predictor does not match System")
-    @info "Returning system and predictor state trajectories"
-	return L1_sol[1:n,:], L1_sol[n+1:2n,:] 
+    sol = solve(L1_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps)
+    isequal(sol[1:n,:], sol[n+1:2n,:]) == true ? (@info "Predictor Test: PASSED") : (@error "Predictor Test FAILED: Predictor does not match System")
+    @info "Returning solution arrays"
+	return sol # For plotting 
 end
 
 

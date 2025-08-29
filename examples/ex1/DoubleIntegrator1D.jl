@@ -64,7 +64,7 @@ initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
 # L1 DRAC Parameters  
 ω = 50.0    
-Tₛ = 1*Δₜ # Needs to be a integer multiple of Δₜ
+Tₛ = 100*Δₜ # Needs to be a integer multiple of Δₜ
 λₛ = 10.0 # Predictor Stability Parameter 
 L1params = drac_params(ω, Tₛ, λₛ)
 ###################################################################
@@ -83,6 +83,12 @@ L1_sol = system_simulation(simulation_parameters, true_system, L1params);
 ensemble_nominal_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
 ensemble_true_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
 
+###################### TESTS #########################
+# Predictor Visualization 
+predictorplot(L1_sol; predictor_mode = :performance)
+# Predictor test 
+prd_test_sol = predictor_test(simulation_parameters, true_system, L1params);
+predictorplot(prd_test_sol; predictor_mode = :test)
 
 ###################### PLOTS #########################
 
@@ -113,5 +119,5 @@ mytest()
 
 Pred_X, Pred_Xhat = predictor_test(simulation_parameters, true_system, L1params);
 
-predictorplot(L1_sol; labelstring1 = L"X_{t}", labelstring2 = L"predictor~\hat{X}_{t}")
+
 
