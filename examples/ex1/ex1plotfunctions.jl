@@ -34,6 +34,28 @@ function simplot(sol1::RODESolution, sol2::RODESolution; labelstring1::LaTeXStri
 	mainplot = plot(PositionPhasePlotTime, PositionPhasePlot, PositionTimePlot; layout = l, size=(600,1200))
 	return mainplot
 end
+# comparison of ALL systems, single sample path
+function simplot(sol1::RODESolution, sol2::RODESolution, sol3::RODESolution; labelstring1::String, labelstring2::String, labelstring3::LaTeXString)
+	l = @layout [a; b; c]
+	lw = 2.5
+	lα = 0.6
+    ###
+    PositionPhasePlot = plot(sol1[1,:], sol1[2,:], color=13, linewidth = lw, linealpha = lα, label=labelstring1)
+    plot!(PositionPhasePlot, sol2[1,:], sol2[2,:], color=7, linewidth = lw, linealpha = lα, label=labelstring2)
+	plot!(PositionPhasePlot, sol3[1,:], sol3[2,:], color=25, linewidth = lw, linealpha = lα, label=labelstring3)
+	###
+	PositionTimePlot1 = plot(sol1.t, sol1[1,:], color=13, linewidth = lw, linealpha = lα, label=false)
+    plot!(PositionTimePlot1, sol2.t, sol2[1,:], color=7, linewidth = lw, linealpha = lα, label=false)
+	plot!(PositionTimePlot1, sol3.t, sol3[1,:], color=25, linewidth = lw, linealpha = lα, label=false, xlabel = L"Time~\rightarrow", title = L"X_{t,1}")
+	###
+	PositionTimePlot2 = plot(sol1.t, sol1[2,:], color=13, linewidth = lw, linealpha = lα, label=false)
+	plot!(PositionTimePlot2, sol2.t, sol2[2,:], color=7, linewidth = lw, linealpha = lα, label=false)
+	plot!(PositionTimePlot2, sol3.t, sol3[2,:], color=25, linewidth = lw, linealpha = lα, label=false, xlabel = L"Time~\rightarrow", title = L"X_{t,2}")
+    ###
+	mainplot = plot(PositionPhasePlot, PositionTimePlot1, PositionTimePlot2; layout = l, size=(600,1200))
+	trackingerrorplot = plot(sol1.t, abs.(sol1[1,:]-sol2[1,:]), color=7, linewidth = lw, linealpha = lα, label=false, xlabel = L"Time~\rightarrow", title = L"|X^\star_{t,1}-X_{t,1}|")
+	return mainplot
+end
 # Single system, Ensemble
 function simplot(sol::EnsembleSolution; xlabelstring::LaTeXString, ylabelstring::LaTeXString)
 	lw = 1.5 # linewidth
@@ -106,3 +128,4 @@ function predictorplot(sol::RODESolution; kwargs...)
     end
 	return PositionTimePlot
 end
+###############################################

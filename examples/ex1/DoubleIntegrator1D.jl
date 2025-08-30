@@ -14,7 +14,7 @@ include("ex1plotfunctions.jl")
 
 # Simulation Parameters
 tspan = (0.0, 5.0)
-Δₜ = 0.005 # Time step size
+Δₜ = 1e-4 # Time step size
 Ntraj = 100 # Number of trajectories in ensemble simulation
 simulation_parameters = sim_params(tspan, Δₜ, Ntraj)
 
@@ -46,13 +46,17 @@ function f(t,x)
 end
 g(t) = [0; 1]
 g_perp(t) = [1; 0];
-p(t,x) = 0.08*I(2)
+p(t,x) = [0.01 0.1; 0.0 0.8] 
 # p(t,x) = zeros(2,2)
 nominal_components = nominal_vector_fields(f, g, g_perp, p)
 
 # Uncertain Vector Fields
-Λμ(t,x) = [1+sin(x[1]); norm(x)] 
-Λσ(t,x) = [0.1+sin(x[2]) 0; 0 0.1+cos(x[2])+sqrt(norm(x))]
+# Λμ(t,x) = [1+sin(x[1]); norm(x)] 
+# Λσ(t,x) = [0.1+sin(x[2]) 0; 0 0.1+cos(x[2])+sqrt(norm(x))]
+## MATCHED UNCERTAINTY CASE 
+Λμ(t,x) = [0.0; 100+10*sin(x[2])+2*norm(x)] 
+Λσ(t,x) = [0.0 0.0; 0.0 5+cos(x[2])+sqrt(norm(x))]
+## NO UNCERTAINTY CASE
 # Λμ(t,x) = zeros(2)
 # Λσ(t,x) = zeros(2,2)
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
@@ -63,9 +67,9 @@ true_ξ₀ = MvNormal([-1.; 2.], 0.1*I(2))
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
 # L1 DRAC Parameters  
-ω = 50.0    
-Tₛ = 100*Δₜ # Needs to be a integer multiple of Δₜ
-λₛ = 10.0 # Predictor Stability Parameter 
+ω = 50.    
+Tₛ = 1*Δₜ # Needs to be a integer multiple of Δₜ
+λₛ = 100. # Predictor Stability Parameter 
 L1params = drac_params(ω, Tₛ, λₛ)
 ###################################################################
 ## COMPUTATION START
@@ -77,11 +81,24 @@ true_system = true_sys(system_dimensions, nominal_components, uncertain_componen
 # Single Trajectories
 nominal_sol = system_simulation(simulation_parameters, nominal_system);
 true_sol = system_simulation(simulation_parameters, true_system);
-L1_sol, adaptive_estimates = system_simulation(simulation_parameters, true_system, L1params);
+L1_sol = system_simulation(simulation_parameters, true_system, L1params);
 
 # Ensemble Trajectories
 ensemble_nominal_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
 ensemble_true_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
+###################### PLOTS #########################
+
+# Single Trajectories
+simplot(nominal_sol; xlabelstring = L"X^\star_{t,1}", ylabelstring = L"X^\star_{t,2}")
+simplot(true_sol; xlabelstring = L"X_{t,1}", ylabelstring = L"X_{t,2}")
+simplot(nominal_sol, true_sol; labelstring1 = L"X^\star_{t}", labelstring2 = L"X_{t}")
+simplot(nominal_sol, true_sol, L1_sol; labelstring1 = "nominal", labelstring2 = "true", labelstring3 = L"\mathcal{L}_1")
+
+
+# Ensemble Trajectories 
+simplot(ensemble_nominal_sol; xlabelstring = L"X^\star_{t,1}", ylabelstring = L"X^\star_{t,2}")
+simplot(ensemble_true_sol; xlabelstring = L"X_{t,1}", ylabelstring = L"X_{t,2}")
+simplot(ensemble_nominal_sol, ensemble_true_sol; labelstring1 = L"X^\star_{t}", labelstring2 = L"X_{t}")
 
 ###################### TESTS #########################
 # Predictor Visualization 
@@ -90,34 +107,7 @@ predictorplot(L1_sol; predictor_mode = :performance)
 prd_test_sol = predictor_test(simulation_parameters, true_system, L1params);
 predictorplot(prd_test_sol; predictor_mode = :test)
 
-###################### PLOTS #########################
 
-# Single Trajectories
-simplot(nominal_sol; xlabelstring = L"X^\star_{t,1}", ylabelstring = L"X^\star_{t,2}")
-simplot(true_sol; xlabelstring = L"X_{t,1}", ylabelstring = L"X_{t,2}")
-simplot(nominal_sol, true_sol; labelstring1 = L"X^\star_{t}", labelstring2 = L"X_{t}")
-
-# Ensemble Trajectories 
-simplot(ensemble_nominal_sol; xlabelstring = L"X^\star_{t,1}", ylabelstring = L"X^\star_{t,2}")
-simplot(ensemble_true_sol; xlabelstring = L"X_{t,1}", ylabelstring = L"X_{t,2}")
-simplot(ensemble_nominal_sol, ensemble_true_sol; labelstring1 = L"X^\star_{t}", labelstring2 = L"X_{t}")
-
-###################### TESTS #########################
-
-
-function mytest()
-    X = rand(n)
-    Xhat = rand(n) 
-    dX = rand(n,d)
-    dXhat = rand(n,d)
-    Z = vcat(X, Xhat)
-    dZ = vcat(dX, dXhat)
-    L1DRAC._L1_diffusion!(dZ, Z, (true_system, L1params), 0.1)
-end
-mytest()
-
-
-Pred_X, Pred_Xhat = predictor_test(simulation_parameters, true_system, L1params);
 
 
 
