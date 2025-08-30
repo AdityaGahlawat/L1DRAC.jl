@@ -25,16 +25,18 @@ d=2
 system_dimensions = sys_dims(n, m, d)
 
 # Nominal Vector Fields
+λ = 6. # Stability of nominal system 
 function trck_traj(t) # Reference trajectory for Nominal deterministic system to track 
     return [3*sin(t); 0.]
 end
-function stbl_cntrl() # Stabilizing controller via pole placement
+function stbl_cntrl(λ) # Stabilizing controller via pole placement
     A = [0 1.0; 0 0]
     B = [0; 1.0] 
     C = I(2)
     D = 0.0 
     sys = ss(A, B, C, D)
-    DesiredPoles = 3*[-2+0.5im, -2-0.5im]
+    # DesiredPoles = 3*[-2+0.5im, -2-0.5im]
+    DesiredPoles = -λ*ones(2)
     K = place(sys, DesiredPoles) # Poles of A-B*K
     return K
 end
@@ -46,19 +48,18 @@ function f(t,x)
 end
 g(t) = [0; 1]
 g_perp(t) = [1; 0];
-p(t,x) = [0.01 0.1; 0.0 0.8] 
-# p(t,x) = zeros(2,2)
+p_um(t,x) = 1.0*[0.01 0.1]
+p_m(t,x) = 1.0*[0.0 0.8]
+p(t,x) = vcat(p_um(t,x), p_m(t,x)) 
 nominal_components = nominal_vector_fields(f, g, g_perp, p)
 
-# Uncertain Vector Fields
-# Λμ(t,x) = [1+sin(x[1]); norm(x)] 
-# Λσ(t,x) = [0.1+sin(x[2]) 0; 0 0.1+cos(x[2])+sqrt(norm(x))]
-## MATCHED UNCERTAINTY CASE 
-Λμ(t,x) = [0.0; 100+10*sin(x[2])+2*norm(x)] 
-Λσ(t,x) = [0.0 0.0; 0.0 5+cos(x[2])+sqrt(norm(x))]
-## NO UNCERTAINTY CASE
-# Λμ(t,x) = zeros(2)
-# Λσ(t,x) = zeros(2,2)
+# Uncertain Vector Fields 
+Λμ_um(t,x) = 1.0*(1+sin(x[1]))
+Λμ_m(t,x) = 1.0*(100+10*sin(x[2])+2*norm(x))
+Λμ(t,x) = vcat(Λμ_um(t,x), Λμ_m(t,x)) 
+Λσ_um(t,x) = 1.0*[0.1+sin(x[2]) 0.0]
+Λσ_m(t,x) = 1.0*[0.0 5+cos(x[2])+sqrt(norm(x))]
+Λσ(t,x) = vcat(Λσ_um(t,x), Λσ_m(t,x))
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
 # Initial distributions

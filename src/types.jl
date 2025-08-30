@@ -5,6 +5,9 @@ struct SimParams
     Ntraj::Int  
 end
 sim_params(tspan::Tuple{Float64, Float64}, Δₜ::Float64, Ntraj::Int) = SimParams(tspan, Δₜ, Ntraj)
+## System Constants 
+# struct SysConstants
+# end
 ## System Dimensions
 struct SysDims
     n::Int

@@ -1,30 +1,4 @@
 # L1-DRAC specific functions 
-# function _L1_drift!(dZ, Z, (true_system, L1params, Λhat), t; kwargs...)
-#     @unpack n, m = getfield(true_system, :sys_dims)
-# 	@unpack f, g, g_perp = getfield(true_system, :nom_vec_fields)
-#     @unpack Λμ = getfield(true_system, :unc_vec_fields)
-#     @unpack λₛ, Tₛ = L1params
-#     # Need the following unrefined concatenation for StaticArrays and GPU compatibility
-#     X = Z[1:n] 
-#     Xhat = Z[n+1:2n]
-#     ## Placeholders
-#     m == 1 ? uₐ = 0.0 : uₐ = zeros(m)   
-#     ##########################
-#     # System
-#     dX = f(t, X) + g(t)*uₐ + Λμ(t,X)  
-#     ##########################
-#     ## CONTROLLER
-#     # Adaptive estimate Λhat is passed as a parameter 
-#     # Predictor
-#     if haskey(kwargs, :predictor_mode) && kwargs[:predictor_mode] == :test
-#         # ---Test Mode: Passing Λμ(t,X) to the Predictor---"
-#         dXhat = -λₛ*(Xhat-X) + f(t, X) + g(t)*uₐ + Λμ(t,X)
-#     else 
-#         dXhat = -λₛ*(Xhat-X) + f(t, X) + g(t)*uₐ + Λhat
-#     end
-#     dZ[1:n] = dX[1:n]
-#     dZ[n+1:2n] = dXhat[1:n]
-# end
 function _L1_drift!(dZ, Z, (true_system, L1params, Λhat, iₐ), t; kwargs...)
     # Adaptive estimate Λhat is passed as a parameter 
     # Adaptation interval index iₐ is passed as a parameter
@@ -61,31 +35,6 @@ function _L1_drift!(dZ, Z, (true_system, L1params, Λhat, iₐ), t; kwargs...)
     dZ[n+1:2n] = dXhat[1:n]
     dZ[2n+1:2n+m] = dXfilter[1:m]
 end
-# function _L1_diffusion!(dZ, Z, (true_system, L1params), t; kwargs...)
-#     @unpack n, d = getfield(true_system, :sys_dims)
-# 	@unpack p = getfield(true_system, :nom_vec_fields)
-# 	@unpack Λσ = getfield(true_system, :unc_vec_fields)
-#     @unpack λₛ = L1params
-#     # Need the following unrefined concatenation for StaticArrays and GPU compatibility
-#     X = Z[1:n] 
-#     Xhat = Z[n+1:2n] 
-#     # System
-#     Fσ(t, X) = p(t,X) + Λσ(t,X)
-#     dX = Fσ(t, X) 
-#     # Predictor
-#     if haskey(kwargs, :predictor_mode) && kwargs[:predictor_mode] == :test
-#         # ---Test Mode: Passing Fσ(t, X) and dWₜ to the Predictor---
-#         dXhat = Fσ(t, X)
-#     else 
-#         dXhat = zeros(n,d) # Predictor is an ODE (drift only)
-#     end
-#     concat_diffusion = vcat(dX, dXhat)
-#     for i in 1:2n
-# 		for j in 1:d
-#             dZ[i,j] = concat_diffusion[i,j]
-# 		end
-# 	end
-# end
 function _L1_diffusion!(dZ, Z, (true_system, L1params), t; kwargs...)
     @unpack n, m, d = getfield(true_system, :sys_dims)
 	@unpack p = getfield(true_system, :nom_vec_fields)
