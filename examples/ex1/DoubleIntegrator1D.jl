@@ -75,7 +75,7 @@ true_system = true_sys(system_dimensions, nominal_components, uncertain_componen
 # Simulation Parameters
 tspan = (0.0, 5.0)
 Δₜ = 1e-4 # Time step size
-Ntraj = 100 # Number of trajectories in ensemble simulation
+Ntraj = 1000 # Number of trajectories in ensemble simulation
 Δ_saveat = 1e2*Δₜ # Needs to be a integer multiple of Δₜ
 simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
@@ -90,7 +90,7 @@ ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :e
 ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
 ###################### PLOTS #########################
 include("plotutils.jl")
-savefig(plotfunc(), "Ex1plot.png")
+plotfunc()
 
 
 
