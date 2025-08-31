@@ -99,7 +99,7 @@ true_system = true_sys(system_dimensions, nominal_components, uncertain_componen
 # Simulation Parameters
 tspan = (0.0, 5.0)
 Δₜ = 1e-4 # Time step size
-Ntraj = 100 # Number of trajectories in ensemble simulation
+Ntraj = 1000 # Number of trajectories in ensemble simulation
 Δ_saveat = 1e2*Δₜ # Needs to be a integer multiple of Δₜ
 simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
