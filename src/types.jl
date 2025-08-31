@@ -2,9 +2,10 @@
 struct SimParams
     tspan::Tuple{Float64, Float64}
     Δₜ::Float64
-    Ntraj::Int  
+    Ntraj::Int 
+    Δ_saveat::Float64 
 end
-sim_params(tspan::Tuple{Float64, Float64}, Δₜ::Float64, Ntraj::Int) = SimParams(tspan, Δₜ, Ntraj)
+sim_params(tspan::Tuple{Float64, Float64}, Δₜ::Float64, Ntraj::Int, Δ_saveat::Float64) = SimParams(tspan, Δₜ, Ntraj, Δ_saveat)
 ## System Constants 
 # struct SysConstants
 # end

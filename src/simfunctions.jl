@@ -53,7 +53,7 @@ end
 # METHOD 1: simulation of nominal system
 function system_simulation(simulation_parameters::SimParams, nominal_system::NominalSystem; kwargs...)
 	prog_steps = 1000
-	@unpack tspan, Δₜ, Ntraj = simulation_parameters
+	@unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
 	@unpack n, d = getfield(nominal_system, :sys_dims)
 	@unpack nominal_ξ₀ = getfield(nominal_system, :init_dists)
 	nom_init = rand(nominal_ξ₀)
@@ -66,10 +66,10 @@ function system_simulation(simulation_parameters::SimParams, nominal_system::Nom
             remake(prob, u0 = rand(nominal_ξ₀))
         end
         ensemble_nominal_problem = EnsembleProblem(nominal_problem, prob_func = nominal_prob_func)
-        nominal_sol = solve(ensemble_nominal_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps)
+        nominal_sol = solve(ensemble_nominal_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     else
         @info "Running Single Trajectory Simulation of Nominal System" 
-	    nominal_sol = solve(nominal_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps)
+	    nominal_sol = solve(nominal_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     end
 	@info "Done"
 	return nominal_sol
@@ -77,7 +77,7 @@ end
 # METHOD 2: simulation of true system
 function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem; kwargs...)
 	prog_steps = 1000
-	@unpack tspan, Δₜ, Ntraj = simulation_parameters
+	@unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
 	@unpack n, d = getfield(true_system, :sys_dims)
 	@unpack true_ξ₀ = getfield(true_system, :init_dists)
 	true_init = rand(true_ξ₀)	
@@ -90,10 +90,10 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
             remake(prob, u0 = rand(true_ξ₀))
         end
         ensemble_true_problem = EnsembleProblem(true_problem, prob_func = true_prob_func)
-        true_sol = solve(ensemble_true_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps)
+        true_sol = solve(ensemble_true_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     else
         @info "Running Single Trajectory Simulation of True System" 
-	    true_sol = solve(true_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps)
+	    true_sol = solve(true_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     end
 	@info "Done"
 	return true_sol

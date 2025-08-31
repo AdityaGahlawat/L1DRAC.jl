@@ -67,7 +67,7 @@ end
 # Methods 1 and 2 are in \src/simfunctions.jl
 function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem, L1params::L1DRACParams; kwargs...)
 	prog_steps = 1000
-	@unpack tspan, Δₜ, Ntraj = simulation_parameters
+	@unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
 	@unpack n, m, d = getfield(true_system, :sys_dims)
 	@unpack true_ξ₀ = getfield(true_system, :init_dists)
     @unpack λₛ, Tₛ = L1params
@@ -102,13 +102,14 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
         @info "Running Ensemble Simulation of L1 System"
         function L1_prob_func(prob, i, repeat)
             rand_init = rand(true_ξ₀)
-            remake(prob, u0 = vcat(rand_init, rand_init)) # System and predictor initialized by the same initial condition
+            remake(prob, u0 = vcat(rand_init, rand_init, zeros(m))) # System and predictor initialized by the same initial condition
+            # zeros(m) is the initial condition for the filter state
         end
         ensemble_L1_problem = EnsembleProblem(L1_problem, prob_func = L1_prob_func)
-        L1_sol = solve(ensemble_L1_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps)
+        L1_sol = solve(ensemble_L1_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, callback = adaptive_law_callback, saveat = Δ_saveat)
     else
         @info "Running Single Trajectory Simulation of L1 System" 
-	    L1_sol = solve(L1_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, callback = adaptive_law_callback)
+	    L1_sol = solve(L1_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, callback = adaptive_law_callback, saveat = Δ_saveat)
     end
 	@info "Done"
 	return L1_sol
