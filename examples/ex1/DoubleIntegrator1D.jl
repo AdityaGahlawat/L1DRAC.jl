@@ -6,19 +6,8 @@ using L1DRAC
 using LinearAlgebra
 using Distributions
 using ControlSystemsBase
-using Plots
-using LaTeXStrings
 
 
-################################
-## USER INPUT
-
-# Simulation Parameters
-tspan = (0.0, 5.0)
-Δₜ = 1e-4 # Time step size
-Ntraj = 10 # Number of trajectories in ensemble simulation
-Δ_saveat = 1e2*Δₜ # Needs to be a integer multiple of Δₜ
-simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
 # System Dimensions 
 n=2
@@ -57,16 +46,16 @@ nominal_components = nominal_vector_fields(f, g, g_perp, p)
 
 # Uncertain Vector Fields 
 Λμ_um(t,x) = 1e-2*(1+sin(x[1]))
-Λμ_m(t,x) = 1.1*(10+10*cos(x[2])+6*norm(x))
+Λμ_m(t,x) = 1.0*(5+10*cos(x[2])+5*norm(x))
 Λμ(t,x) = vcat(Λμ_um(t,x), Λμ_m(t,x)) 
 Λσ_um(t,x) = 1e-2*[0.1+cos(x[2]) 2]
-Λσ_m(t,x) = 2.8*[0.0 5+sin(x[2])+10*sqrt(norm(x))]
+Λσ_m(t,x) = 1.0*[0.0 5+sin(x[2])+5.0*sqrt(norm(x))]
 Λσ(t,x) = vcat(Λσ_um(t,x), Λσ_m(t,x))
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
 # Initial distributions
-nominal_ξ₀ = MvNormal(500.0*ones(n), 1e3*I(n))
-true_ξ₀ = MvNormal(-500*ones(n), 1e3*I(n))
+nominal_ξ₀ = MvNormal(20.0*ones(n), 1e2*I(n))
+true_ξ₀ = MvNormal(-2.0*ones(n), 1e1*I(n))
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
 # L1 DRAC Parameters  
@@ -74,13 +63,21 @@ initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 Tₛ = 10*Δₜ # Needs to be a integer multiple of Δₜ
 λₛ = 100. # Predictor Stability Parameter 
 L1params = drac_params(ω, Tₛ, λₛ)
+
 ###################################################################
-## COMPUTATION START
+## COMPUTATION 
 ##################################################################
 
 # Define the systems
 nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
 true_system = true_sys(system_dimensions, nominal_components, uncertain_components, initial_distributions)
+
+# Simulation Parameters
+tspan = (0.0, 5.0)
+Δₜ = 1e-4 # Time step size
+Ntraj = 100 # Number of trajectories in ensemble simulation
+Δ_saveat = 1e2*Δₜ # Needs to be a integer multiple of Δₜ
+simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
 # Solve for Single Sample Paths
 nom_sol = system_simulation(simulation_parameters, nominal_system);
@@ -92,36 +89,9 @@ ens_nom_sol = system_simulation(simulation_parameters, nominal_system; simtype =
 ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
 ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
 ###################### PLOTS #########################
+include("plotutils.jl")
+savefig(plotfunc(), "~/plot.png")
 
-l = @layout [a1 a2; b1 b2]
-
-# Plotting num_to_plot random trajectories from the ensemble
-num_to_plot = 10
-plt_idxs = rand(1:Ntraj, num_to_plot)
-function ensemble_norm_error_plots()
-    p1 = plot()
-    for i ∈ plt_idxs
-        plot!(p1, ens_nom_sol[i].t, map(x->norm(x), ens_nom_sol[i].u-ens_tru_sol[i].u), lw=2, lalpha=0.1, color = 1, label = :false)
-        ens_L1_state = [ens_L1_sol[i][j][1:2] for j in 1:length(ens_L1_sol[i])]
-        plot!(p1, ens_nom_sol[i].t, map(x->norm(x), ens_nom_sol[i].u-ens_L1_state), lw=2, lalpha=0.1, color = 2, label = :false)
-    end
-    return p1
-end
-p1 = ensemble_norm_error_plots()
-p2=plot()
-for i ∈ plt_idxs
-    plot!(p2, ens_nom_sol[i], idxs = (0,1), lw=2, lalpha=0.1, color = 13, label = :false)
-    plot!(p2, ens_tru_sol[i], idxs = (0,1), lw=2, lalpha=0.1, color = 7, label = :false)
-    plot!(p2, ens_L1_sol[i], idxs = (0,1), lw=2, lalpha=0.1, color = 25, label = :false)
-end
-p2
-p3=plot()
-for i ∈ plt_idxs
-    plot!(p3, ens_nom_sol[i], idxs = (0,2), lw=2, lalpha=0.1, color = 13, label = :false)
-    plot!(p3, ens_tru_sol[i], idxs = (0,2), lw=2, lalpha=0.1, color = 7, label = :false)
-    plot!(p3, ens_L1_sol[i], idxs = (0,2), lw=2, lalpha=0.1, color = 25, label = :false)
-end
-p3
 
 
 # ###################### TESTS #########################

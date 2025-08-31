@@ -1,6 +1,7 @@
 # Plotting functions for example 1# Plot Functions
 using Plots
 using LaTeXStrings
+import DifferentialEquations as DE
 
 ###############################################
 ## Multiple Dispatch
@@ -129,3 +130,30 @@ function predictorplot(sol::RODESolution; kwargs...)
 	return PositionTimePlot
 end
 ###############################################
+
+## ENSEMBLE AND PATH PLOTS IN EXAMPLE 1 ##
+function plotfunc()
+    l = @layout [a b; c d]
+    nom_summ = DE.EnsembleSummary(ens_nom_sol)
+    tru_summ = DE.EnsembleSummary(ens_tru_sol)
+    L1_summ = DE.EnsembleSummary(ens_L1_sol)
+    p1=plot(); p2=plot(); p3=plot(); p4=plot();
+    for i ∈ 1:Ntraj
+        plot!(p1, ens_nom_sol[i], idxs = (0,1), lw=2, lalpha=0.1, color = 13, label = :false)
+        plot!(p1, ens_tru_sol[i], idxs = (0,1), lw=2, lalpha=0.1, color = 7, label = :false)
+        plot!(p1, ens_L1_sol[i], idxs = (0,1), lw=2, lalpha=0.1, color = 25, label = :false, title = L"X_1-Nom(Blue), Tru(Orange) \mathcal{L}_1(Green)")
+
+        plot!(p2, ens_nom_sol[i], idxs = (0,2), lw=2, lalpha=0.1, color = 13, label = :false)
+        plot!(p2, ens_tru_sol[i], idxs = (0,2), lw=2, lalpha=0.1, color = 7, label = :false)
+        plot!(p2, ens_L1_sol[i], idxs = (0,2), lw=2, lalpha=0.1, color = 25, label = :false, title = L"X_2")
+    end
+    plot!(p3, nom_summ, idxs = 1, color = 13, lw = 1, fillalpha = 0.2)
+    plot!(p3, tru_summ, idxs = 1, color = 7, lw = 1, fillalpha = 0.2)
+    plot!(p3, L1_summ, idxs = 1, color = 25, lw = 1, fillalpha = 0.2, xlabel = "t")
+
+    plot!(p4, nom_summ, idxs = 2, color = 13, lw = 1, fillalpha = 0.2)
+    plot!(p4, tru_summ, idxs = 2, color = 7, lw = 1, fillalpha = 0.2)
+    plot!(p4, L1_summ, idxs = 2, color = 25, lw = 1, fillalpha = 0.2, xlabel= "t")
+
+    return plot(p1, p2, p3, p4, layout = l, size = (900, 900))
+end
