@@ -112,11 +112,14 @@ L1_sol = system_simulation(simulation_parameters, true_system, L1params);
 ens_nom_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
 ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
 ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
-###################### PLOTS #########################
+
+# Plots
 include("plotutils.jl")
+plotfunc()
 ```
 
-![](https://github.com/arlk/SafeFeedbackMotionPlanning.jl/raw/master/examples/readme_ex.png)
+![](https://github.com/AdityaGahlawat/L1DRAC.jl/blob/main/examples/ex1/Ex1plot.png)
+
 
 
 ## TODO
