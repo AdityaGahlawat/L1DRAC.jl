@@ -2,9 +2,13 @@
 struct SimParams
     tspan::Tuple{Float64, Float64}
     Δₜ::Float64
-    Ntraj::Int  
+    Ntraj::Int 
+    Δ_saveat::Float64 
 end
-sim_params(tspan::Tuple{Float64, Float64}, Δₜ::Float64, Ntraj::Int) = SimParams(tspan, Δₜ, Ntraj)
+sim_params(tspan::Tuple{Float64, Float64}, Δₜ::Float64, Ntraj::Int, Δ_saveat::Float64) = SimParams(tspan, Δₜ, Ntraj, Δ_saveat)
+## System Constants 
+# struct SysConstants
+# end
 ## System Dimensions
 struct SysDims
     n::Int
@@ -47,12 +51,6 @@ struct TrueSystem{SysDims, NominalVectorFields, UncertainVectorFields, InitialDi
     init_dists::InitialDistributions
 end
 true_sys(sys_dims::SysDims, nom_vec_fields::NominalVectorFields, unc_vector_fields::UncertainVectorFields, init_dists::InitialDistributions) = TrueSystem(sys_dims, nom_vec_fields, unc_vector_fields, init_dists)
-## Total Concatenated State Vector
-mutable struct ConcatState 
-    X::Vector{Float64}
-    Xhat::Vector{Float64}
-end
-concat_state(X::Vector{Float64}, Xhat::Vector{Float64}) = ConcatState(X, Xhat)
 
 struct L1DRACParams
     ω::Float64
