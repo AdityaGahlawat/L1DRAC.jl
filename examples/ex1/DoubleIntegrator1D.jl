@@ -90,7 +90,7 @@ ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :e
 ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
 ###################### PLOTS #########################
 include("plotutils.jl")
-savefig(plotfunc(), "~/plot.png")
+savefig(plotfunc(), "Ex1plot.png")
 
 
 
