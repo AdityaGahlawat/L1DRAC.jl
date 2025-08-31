@@ -20,7 +20,7 @@ Package for the numerical implementation of $\mathcal{L}_1$ Distributionally Rob
 ### Installation
 
 ```julia
-julia> ] add https://github.com/arlk/SafeFeedbackMotionPlanning.jl
+julia> ] add https://github.com/AdityaGahlawat/L1DRAC.jl
 ```
 
 ### Example
