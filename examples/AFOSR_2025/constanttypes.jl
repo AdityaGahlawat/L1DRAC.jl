@@ -1,4 +1,4 @@
-# constants defined in the Assumptions (section 2.2)
+# constants defined in the Assumptions 
 struct AssumptionConstants
     p::Int 
     Lipschitz_condn_holds::Bool

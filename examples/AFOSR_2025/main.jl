@@ -1,9 +1,7 @@
-## L1DRAC for a 1D Double Integrator
-#using Revise
+## L1DRAC for a 1D Double Integrator for AFOSR 2025
 
 #### MAIN CODE ####
 using L1DRAC
-using UnPack
 using LinearAlgebra
 using Distributions
 using ControlSystemsBase
@@ -49,7 +47,7 @@ p_m(t,x) = 1.0*[0.0 0.8]
 p(t,x) = vcat(p_um(t,x), p_m(t,x)) 
 nominal_components = nominal_vector_fields(f, g, g_perp, p)
 
-# # Uncertain Vector Fields 
+# Uncertain Vector Fields 
 Λμ_um(t,x) = 1e-5
 Λμ_m(t,x) = 1.5* (1 + norm(x))
 Λμ(t,x) = vcat(Λμ_um(t,x), Λμ_m(t,x)) 
@@ -58,49 +56,33 @@ nominal_components = nominal_vector_fields(f, g, g_perp, p)
 Λσ(t,x) = vcat(Λσ_um(t,x), Λσ_m(t,x))
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
-# # Initial distributions
+# Initial distributions
 nominal_ξ₀ = MvNormal(2.0*ones(2), I(2))
 true_ξ₀ = MvNormal(-2.0*ones(2), I(2))
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
+# The squared Wasserstein metric of order 2 between two Normal distributions. Currently, α supports only Normal distributions.
+α_sq = (alpha(initial_distributions))^2  
 
+
+# Constants from the assumptions in Sec. 2.2 and ε_r, ε_a from Sec. 3.2
 assumption_constants = assump_consts(
-    Δg=1.0, 
-    Δg_dot=0.0, 
-    Δg_perp=1.0,
-    Δf=75,
-    Δ_star=10,
-
-    Δp=0.9, 
-    Δp_parallel=0.8, 
-    Δp_perp =0.3, 
-
-    Δμ=1.5,
-    Δμ_parallel=1.5,
-    Δμ_perp=0.0,
-
-    Δσ=0.5, 
-    Δσ_parallel=0.5, 
-    Δσ_perp=0.0, 
-
-    L_p=0.0, 
-    L_p_parallel=0.0,
-    L_p_perp=0.0, 
-
-    L_μ=1.5, 
-    L_μ_parallel=1.5,
-    L_μ_perp=0.0,
-
-    L_σ=0.5,
-    L_σ_parallel=0.5,
-    L_σ_perp=0.0,
-    
-    L_f=10.9,
-    λ=3.0, m=1.0, 
+    Δg=1.0, Δg_dot=0.0, Δg_perp=1.0,
+    Δf=75,   Δ_star=10,
+    Δp=0.9,  Δp_parallel=0.8, 
+    Δμ=1.5,  Δμ_parallel=1.5,
+    Δσ=0.5,  Δσ_parallel=0.5, 
+    L_μ=1.5, L_μ_parallel=1.5,
+    L_σ=0.5, L_σ_parallel=0.5,
+    L_f=10.9, λ=3.0, m=1.0, 
     ϵ_r=0.2, ϵ_a=0.2
 )
+# Reference Process Analysis constants (Sec. A.1)
 ref_sys_constants =  RefSystemConstants(assumption_constants) 
+
+# True Process Analysis constants (Sec. A.2)
 true_sys_constants = TrueSystemConstants(assumption_constants) 
+
 # ###################################################################
 # ## COMPUTATION 
 # ##################################################################
@@ -117,14 +99,27 @@ Ntraj = 10 # Number of trajectories in ensemble simulation
 simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
 # L1 DRAC Parameters  
-ω = 90.    
+ρ, ω =  rho_and_filter_bandwidth_computation(α_sq, assumption_constants, ref_sys_constants, true_sys_constants)   
+
+@show ρ, ω 
+
 Tₛ = 10*Δₜ # Needs to be a integer multiple of Δₜ
 λₛ = 100. # Predictor Stability Parameter 
 L1params = drac_params(ω, Tₛ, λₛ)
 
 
-rho_r, rho_a, rho= find_rho(initial_distributions,assumption_constants,true_sys_constants ,ref_sys_constants, L1params)
-@show rho
+# The plots below are retained from the DoubleIntegrator example. To be modified.
 
-ω_condns_satisfied= filter_bandwidth_conditions(rho_r, rho_a, initial_distributions, assumption_constants, ref_sys_constants, true_sys_constants, L1params)
-@show ω_condns_satisfied
+# Solve for Single Sample Paths
+# nom_sol = system_simulation(simulation_parameters, nominal_system);
+# tru_sol = system_simulation(simulation_parameters, true_system);
+# L1_sol = system_simulation(simulation_parameters, true_system, L1params);
+
+# Solve for Ensembles of Ntraj Sample Paths
+# @time ens_nom_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
+# @time ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
+# @time ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
+
+# ###################### PLOTS #########################
+# include("plotutils.jl")
+# plotfunc()
