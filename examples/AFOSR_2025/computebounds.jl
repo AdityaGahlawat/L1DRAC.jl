@@ -49,8 +49,8 @@ end
 
 function ρᵣ_condition(ρᵣ::Float64; initial_distributions, assumption_constants::AssumptionConstants, ref_sys_constants::RefSystemConstants, L1params )
     
-    ϵ_r=0.2
-    @unpack λ, Δg_perp, Δμ_perp   = assumption_constants
+
+    @unpack λ, Δg_perp, Δμ_perp, ϵ_r   = assumption_constants
 
     lhs = (1 - (Δg_perp * Δμ_perp ) / λ) * (ρᵣ^2)
     rhs =  alpha(initial_distributions)^2 + Gamma_r(ρᵣ,assumption_constants, ref_sys_constants, L1params) + ϵ_r
@@ -58,8 +58,8 @@ function ρᵣ_condition(ρᵣ::Float64; initial_distributions, assumption_const
 end
 
 function ρₐ_condition(ρₐ::Float64; assumption_constants::AssumptionConstants, true_sys_constants::TrueSystemConstants, L1params )
-    ϵ_a=0.2
-    @unpack λ, Δg_perp, L_μ_perp = assumption_constants
+    
+    @unpack λ, Δg_perp, L_μ_perp, ϵ_a = assumption_constants
 
     lhs = (1 - (Δg_perp * L_μ_perp) / λ) * (ρₐ^2)
     rhs =  Gamma_a(ρₐ, assumption_constants, true_sys_constants, L1params ) + ϵ_a

@@ -91,13 +91,13 @@ end
 
 
 RefSystemConstants(assump_consts::AssumptionConstants) = begin
-    DRH = _DeltaRHat(assump_consts)
-    DR_c = _DeltaR_circle(assump_consts, DRH)
-    DR_cc= _DeltaR_circledcirc(assump_consts, DRH)
-    DR_odot= _DeltaR_odot(assump_consts, DRH)
-    DR_otimes = _DeltaR_otimes(assump_consts, DRH)
-    DR_ostar = _DeltaR_ostar(assump_consts, DRH)
-    RefSystemConstants(DRH, DR_c, DR_cc , DR_odot,DR_otimes, DR_ostar)
+    DeltaRHat = _DeltaRHat(assump_consts)
+    DeltaR_circle = _DeltaR_circle(assump_consts,  DeltaRHat)
+    DeltaR_circledcirc= _DeltaR_circledcirc(assump_consts,  DeltaRHat)
+    DeltaR_odot= _DeltaR_odot(assump_consts,  DeltaRHat)
+    DeltaR_otimes = _DeltaR_otimes(assump_consts,  DeltaRHat)
+    DeltaR_ostar = _DeltaR_ostar(assump_consts,  DeltaRHat)
+    RefSystemConstants(DeltaRHat, DeltaR_circle, DeltaR_circledcirc , DeltaR_odot,DeltaR_otimes, DeltaR_ostar)
 end
 
 
@@ -159,10 +159,10 @@ function _Delta_ostar(assumption_constants::AssumptionConstants, ΔHat::DeltaHat
 end
 
 TrueSystemConstants(assump_consts::AssumptionConstants) = begin
-    DH = _DeltaHat(assump_consts)
-    D_cc= _Delta_circledcirc(assump_consts, DH)
-    D_odot= _Delta_odot(assump_consts, DH)
-    D_otimes = _Delta_otimes(assump_consts, DH)
-    D_ostar = _Delta_ostar(assump_consts, DH)
-    TrueSystemConstants(DH, D_cc , D_odot, D_otimes, D_ostar)
+    DeltaHat = _DeltaHat(assump_consts)
+    Delta_circledcirc= _Delta_circledcirc(assump_consts, DeltaHat)
+    Delta_odot= _Delta_odot(assump_consts, DeltaHat)
+    Delta_otimes = _Delta_otimes(assump_consts, DeltaHat)
+    Delta_ostar = _Delta_ostar(assump_consts, DeltaHat)
+    TrueSystemConstants(DeltaHat, Delta_circledcirc , Delta_odot, Delta_otimes, Delta_ostar)
 end

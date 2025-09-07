@@ -36,6 +36,8 @@ struct AssumptionConstants
 
     λ::Float64
     m::Float64
+    ϵ_r::Float64
+    ϵ_a::Float64
 end
 
 assump_consts(; 
@@ -49,7 +51,7 @@ assump_consts(;
     L_μ=0.0, L_μ_parallel=0.0, L_μ_perp=0.0,
     L_σ=0.0, L_σ_parallel=0.0, L_σ_perp=0.0,
     L_f=0.0,
-    λ=1.0, m=1.0
+    λ=1.0, m=1.0, ϵ_r=0.2 ,ϵ_a=0.2
 ) = AssumptionConstants(
     p, Lipschitz_condn_holds,
     Δg, Δg_dot, Δg_perp, Δf, Δ_star,
@@ -59,7 +61,7 @@ assump_consts(;
     L_p, L_p_parallel, L_p_perp,
     L_μ, L_μ_parallel, L_μ_perp,
     L_σ, L_σ_parallel, L_σ_perp,
-    L_f, λ, m
+    L_f, λ, m, ϵ_r, ϵ_a
 )
 
 # Reference system constants 

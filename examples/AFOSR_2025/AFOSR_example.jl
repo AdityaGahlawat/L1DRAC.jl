@@ -96,10 +96,11 @@ assumption_constants = assump_consts(
     L_σ_perp=0.0,
     
     L_f=10.9,
-    λ=3.0, m=1.0
+    λ=3.0, m=1.0, 
+    ϵ_r=0.2, ϵ_a=0.2
 )
-ref_sys_constants =  RefSystemConstants(assumption_constants)
-true_sys_constants = TrueSystemConstants(assumption_constants)
+ref_sys_constants =  RefSystemConstants(assumption_constants) 
+true_sys_constants = TrueSystemConstants(assumption_constants) 
 # ###################################################################
 # ## COMPUTATION 
 # ##################################################################
