@@ -75,8 +75,8 @@ assumption_constants = assump_consts(
     Δp_parallel=0.8, 
     Δp_perp =0.3, 
 
-    Δμ=0.5,
-    Δμ_parallel=0.5,
+    Δμ=1.5,
+    Δμ_parallel=1.5,
     Δμ_perp=0.0,
 
     Δσ=0.5, 
@@ -116,7 +116,7 @@ Ntraj = 10 # Number of trajectories in ensemble simulation
 simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
 # L1 DRAC Parameters  
-ω = 70.    
+ω = 90.    
 Tₛ = 10*Δₜ # Needs to be a integer multiple of Δₜ
 λₛ = 100. # Predictor Stability Parameter 
 L1params = drac_params(ω, Tₛ, λₛ)
