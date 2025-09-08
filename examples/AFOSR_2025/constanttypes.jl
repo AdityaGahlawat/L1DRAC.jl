@@ -1,6 +1,6 @@
-# constants defined in the Assumptions 
+# constants defined in the Assumptions (section 2.2)
 struct AssumptionConstants
-    p::Int 
+    order_p::Int 
     Lipschitz_condn_holds::Bool
     Δg::Float64
     Δg_dot::Float64
@@ -41,7 +41,7 @@ struct AssumptionConstants
 end
 
 assump_consts(; 
-    p=1,
+    order_p=1,
     Lipschitz_condn_holds=true,
     Δg=0.0, Δg_dot=0.0, Δg_perp=0.0, Δf=0.0, Δ_star=0.0,
     Δp=0.0, Δp_parallel=0.0, Δp_perp=0.0,
@@ -53,7 +53,7 @@ assump_consts(;
     L_f=0.0,
     λ=1.0, m=1.0, ϵ_r=0.2 ,ϵ_a=0.2
 ) = AssumptionConstants(
-    p, Lipschitz_condn_holds,
+    order_p, Lipschitz_condn_holds,
     Δg, Δg_dot, Δg_perp, Δf, Δ_star,
     Δp, Δp_parallel, Δp_perp,
     Δμ, Δμ_parallel, Δμ_perp,
@@ -63,7 +63,6 @@ assump_consts(;
     L_σ, L_σ_parallel, L_σ_perp,
     L_f, λ, m, ϵ_r, ϵ_a
 )
-
 # Reference system constants 
 # Common constants 
 struct DeltaRHat

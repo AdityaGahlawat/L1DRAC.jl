@@ -20,7 +20,7 @@ end
 
 function Gamma_r(rho_r, ω, assumption_constants::AssumptionConstants, ref_sys_constants::RefSystemConstants)
 
-    @unpack p, λ, Δ_star   = assumption_constants
+    @unpack  λ, Δ_star   = assumption_constants
     @unpack Δr_circle_1, Δr_circle_4 = getfield(ref_sys_constants, :Δr_circle)
     @unpack Δr_circledcirc_1, Δr_circledcirc_4 = getfield(ref_sys_constants, :Δr_circledcirc)
     @unpack Δr_odot_1, Δr_odot_2, Δr_odot_3, Δr_odot_8  = getfield(ref_sys_constants, :Δr_odot)
@@ -95,7 +95,7 @@ function filter_bandwidth_condition1(rho_r, ω)
     @unpack λ, Δg_perp, Δμ_perp, L_μ_perp = assumption_constants
 
     lhs_r = Theta_r(rho_r, ω, assumption_constants, ref_sys_constants) / (ω - 2*λ)
-    rhs_r = (1 - (Δg_perp * Δμ_perp) / λ) * (rho_r^2) - α_sq - Gamma_r(rho_r,ω ,assumption_constants, ref_sys_constants)
+    rhs_r = (1 - (Δg_perp * Δμ_perp) / λ) * (rho_r^2) - α^2 - Gamma_r(rho_r,ω ,assumption_constants, ref_sys_constants)
     return rhs_r - lhs_r
 end
 
@@ -113,7 +113,7 @@ function rho_r_condition(rho_r, ω)
     @unpack λ, Δg_perp, Δμ_perp, ϵ_r   = assumption_constants
 
     lhs = (1 - (Δg_perp * Δμ_perp ) / λ) * (rho_r^2)
-    rhs =  α_sq + Gamma_r(rho_r,ω ,assumption_constants, ref_sys_constants) + ϵ_r
+    rhs =  α^2 + Gamma_r(rho_r,ω ,assumption_constants, ref_sys_constants) + ϵ_r
 
     return lhs - rhs
 end
@@ -127,7 +127,7 @@ function rho_a_condition(rho_a, ω)
     return lhs - rhs
 end
 
-function rho_and_filter_bandwidth_computation( α_sq, assumption_constants::AssumptionConstants, ref_sys_constants::RefSystemConstants, true_sys_constants::TrueSystemConstants )
+function rho_and_filter_bandwidth_computation( α, assumption_constants::AssumptionConstants, ref_sys_constants::RefSystemConstants, true_sys_constants::TrueSystemConstants )
     model = Model(Ipopt.Optimizer)
     @unpack λ   = assumption_constants
 

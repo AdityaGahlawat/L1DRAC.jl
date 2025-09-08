@@ -17,8 +17,10 @@ m=1
 d=2
 system_dimensions = sys_dims(n, m, d)
 
-# # Nominal Vector Fields
-λ = 3.0 # Stability of nominal system 
+
+# Nominal Vector Fields
+#  Stability of nominal system 
+λ=3.0
 function trck_traj(t) # Reference trajectory for Nominal deterministic system to track 
     return [5*sin(t) + 3*cos(2*t); 0.]
 end
@@ -40,66 +42,79 @@ function f(t,x)
     K = stbl_cntrl(λ)
     return (A-B*K)*x + B*K*trck_traj(t)
 end
-g(t) = [0; 1]
-g_perp(t) = [1; 0];
-p_um(t,x) = 2.0*[0.01 0.1]
-p_m(t,x) = 1.0*[0.0 0.8]
-p(t,x) = vcat(p_um(t,x), p_m(t,x)) 
-nominal_components = nominal_vector_fields(f, g, g_perp, p)
+Δf=75
+L_f=10.9
 
+g(t) = [0; 1]
+Δg=1.0
+g_perp(t) = [1; 0];
+Δg_perp=1.0
+
+p_um(t,x) = 2.0*[0.01 0.1]
+p_m(t,x)  = 1.0*[0.0 0.8]
+Δp_parallel=0.8
+p(t,x) = vcat(p_um(t,x), p_m(t,x)) 
+Δp=0.9
+
+nominal_components = nominal_vector_fields(f, g, g_perp, p)
+Δ_star =10
 # Uncertain Vector Fields 
-Λμ_um(t,x) = 1e-5
-Λμ_m(t,x) = 1.5* (1 + norm(x))
+Λμ_um(t,x)  = 1e-5
+Λμ_m(t,x)   = 4.5* (1 + norm(x))
+Δμ_parallel = 4.5
 Λμ(t,x) = vcat(Λμ_um(t,x), Λμ_m(t,x)) 
+Δμ=4.5
+L_μ=4.5 
+L_μ_parallel =4.5
+
 Λσ_um(t,x) = [1e-5 1e-5]
-Λσ_m(t,x) = 1.0*[0.0 0.5*sqrt(norm(x))]
+Λσ_m(t,x) = 1.0*[0.0 2.5*sqrt(norm(x))]
 Λσ(t,x) = vcat(Λσ_um(t,x), Λσ_m(t,x))
+Δσ=2.5
+L_σ=2.5
+L_σ_parallel=2.5
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
 # Initial distributions
 nominal_ξ₀ = MvNormal(2.0*ones(2), I(2))
-true_ξ₀ = MvNormal(-2.0*ones(2), I(2))
+true_ξ₀ = MvNormal(-10.0*ones(2), 5*I(2))
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
 # The squared Wasserstein metric of order 2 between two Normal distributions. Currently, α supports only Normal distributions.
-α_sq = (alpha(initial_distributions))^2  
+α = alpha(initial_distributions) 
 
+# Constants ε_r, ε_a from Sec. 3.2
+ϵ_r=0.2
+ϵ_a=0.2
 
-# Constants from the assumptions in Sec. 2.2 and ε_r, ε_a from Sec. 3.2
-assumption_constants = assump_consts(
-    Δg=1.0, Δg_dot=0.0, Δg_perp=1.0,
-    Δf=75,   Δ_star=10,
-    Δp=0.9,  Δp_parallel=0.8, 
-    Δμ=1.5,  Δμ_parallel=1.5,
-    Δσ=0.5,  Δσ_parallel=0.5, 
-    L_μ=1.5, L_μ_parallel=1.5,
-    L_σ=0.5, L_σ_parallel=0.5,
-    L_f=10.9, λ=3.0, m=1.0, 
-    ϵ_r=0.2, ϵ_a=0.2
-)
-# Reference Process Analysis constants (Sec. A.1)
+assumption_constants = assump_consts(; Δg, Δg_perp, Δf, Δ_star,
+                                       Δp, Δp_parallel,Δμ, Δμ_parallel,
+                                       Δσ, Δσ_parallel, L_μ, L_μ_parallel,
+                                       L_σ, L_σ_parallel,L_f, λ, m, ϵ_r, ϵ_a )
+
+# # Reference Process Analysis constants (Sec. A.1)
 ref_sys_constants =  RefSystemConstants(assumption_constants) 
 
-# True Process Analysis constants (Sec. A.2)
-true_sys_constants = TrueSystemConstants(assumption_constants) 
+# # True Process Analysis constants (Sec. A.2)
+true_sys_constants = TrueSystemConstants(assumption_constants)
 
-# ###################################################################
-# ## COMPUTATION 
-# ##################################################################
+# # ###################################################################
+# # ## COMPUTATION 
+# # ##################################################################
 
-# Define the systems
+# # Define the systems
 nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
 true_system = true_sys(system_dimensions, nominal_components, uncertain_components, initial_distributions)
 
-# Simulation Parameters
+# # Simulation Parameters
 tspan = (0.0, 5.0)
 Δₜ = 1e-4 # Time step size
-Ntraj = 10 # Number of trajectories in ensemble simulation
+Ntraj = 100 # Number of trajectories in ensemble simulation
 Δ_saveat = 1e2*Δₜ # Needs to be a integer multiple of Δₜ
 simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
-# L1 DRAC Parameters  
-ρ, ω =  rho_and_filter_bandwidth_computation(α_sq, assumption_constants, ref_sys_constants, true_sys_constants)   
+# # L1 DRAC Parameters  
+ρ, ω =  rho_and_filter_bandwidth_computation(α, assumption_constants, ref_sys_constants, true_sys_constants)   
 
 @show ρ, ω 
 
@@ -111,15 +126,15 @@ L1params = drac_params(ω, Tₛ, λₛ)
 # The plots below are retained from the DoubleIntegrator example. To be modified.
 
 # Solve for Single Sample Paths
-# nom_sol = system_simulation(simulation_parameters, nominal_system);
-# tru_sol = system_simulation(simulation_parameters, true_system);
-# L1_sol = system_simulation(simulation_parameters, true_system, L1params);
+nom_sol = system_simulation(simulation_parameters, nominal_system);
+tru_sol = system_simulation(simulation_parameters, true_system);
+L1_sol = system_simulation(simulation_parameters, true_system, L1params);
 
 # Solve for Ensembles of Ntraj Sample Paths
-# @time ens_nom_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
-# @time ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
-# @time ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
+@time ens_nom_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
+@time ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
+@time ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
 
 # ###################### PLOTS #########################
-# include("plotutils.jl")
-# plotfunc()
+include("plotutils.jl")
+plotfunc()
