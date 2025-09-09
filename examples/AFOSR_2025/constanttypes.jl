@@ -7,6 +7,7 @@ struct AssumptionConstants
     Δg_perp::Float64
     Δf::Float64
     Δ_star::Float64
+    Δ_Theta::Float64
 
     Δp::Float64
     Δp_parallel::Float64
@@ -23,14 +24,23 @@ struct AssumptionConstants
     L_p::Float64
     L_p_parallel::Float64  
     L_p_perp::Float64
+    LHat_p::Float64
+    LHat_p_parallel::Float64
+   
 
     L_μ::Float64
-    L_μ_parallel::Float64   
-    L_μ_perp::Float64  
+    L_μ_parallel::Float64 
+    L_μ_perp::Float64 
+    LHat_μ::Float64  
+    LHat_μ_parallel::Float64   
+     
 
     L_σ::Float64
     L_σ_parallel::Float64 
-    L_σ_perp::Float64     
+    L_σ_perp::Float64 
+    LHat_σ::Float64
+    LHat_σ_parallel::Float64  
+        
    
     L_f::Float64
 
@@ -43,26 +53,26 @@ end
 assump_consts(; 
     order_p=1,
     Lipschitz_condn_holds=true,
-    Δg=0.0, Δg_dot=0.0, Δg_perp=0.0, Δf=0.0, Δ_star=0.0,
+    Δg=0.0, Δg_dot=0.0, Δg_perp=0.0, Δf=0.0, Δ_star=0.0, Δ_Theta=0.0,
     Δp=0.0, Δp_parallel=0.0, Δp_perp=0.0,
     Δμ=0.0, Δμ_parallel=0.0, Δμ_perp=0.0,
     Δσ=0.0, Δσ_parallel=0.0, Δσ_perp=0.0,
-    L_p=0.0, L_p_parallel=0.0, L_p_perp=0.0,
-    L_μ=0.0, L_μ_parallel=0.0, L_μ_perp=0.0,
-    L_σ=0.0, L_σ_parallel=0.0, L_σ_perp=0.0,
-    L_f=0.0,
-    λ=1.0, m=1.0, ϵ_r=0.2 ,ϵ_a=0.2
+    L_p=0.0, L_p_parallel=0.0, L_p_perp=0.0, LHat_p=0.0, LHat_p_parallel=0.0,
+    L_μ=0.0, L_μ_parallel=0.0, L_μ_perp=0.0, LHat_μ=0.0, LHat_μ_parallel=0.0,
+    L_σ=0.0, L_σ_parallel=0.0, L_σ_perp=0.0, LHat_σ=0.0, LHat_σ_parallel=0.0,
+    L_f=0.0, λ=1.0, m=1.0, ϵ_r=0.2, ϵ_a=0.2
 ) = AssumptionConstants(
-    order_p, Lipschitz_condn_holds,
-    Δg, Δg_dot, Δg_perp, Δf, Δ_star,
-    Δp, Δp_parallel, Δp_perp,
-    Δμ, Δμ_parallel, Δμ_perp,
-    Δσ, Δσ_parallel, Δσ_perp,
-    L_p, L_p_parallel, L_p_perp,
-    L_μ, L_μ_parallel, L_μ_perp,
-    L_σ, L_σ_parallel, L_σ_perp,
-    L_f, λ, m, ϵ_r, ϵ_a
-)
+        order_p, Lipschitz_condn_holds,
+        Δg, Δg_dot, Δg_perp, Δf, Δ_star, Δ_Theta,
+        Δp, Δp_parallel, Δp_perp,
+        Δμ, Δμ_parallel, Δμ_perp,
+        Δσ, Δσ_parallel, Δσ_perp,
+        L_p, L_p_parallel, L_p_perp, LHat_p, LHat_p_parallel,
+        L_μ, L_μ_parallel, L_μ_perp, LHat_μ, LHat_μ_parallel,
+        L_σ, L_σ_parallel, L_σ_perp, LHat_σ, LHat_σ_parallel,
+        L_f, λ, m, ϵ_r, ϵ_a
+    )
+
 # Reference system constants 
 # Common constants 
 struct DeltaRHat
@@ -171,5 +181,3 @@ struct TrueSystemConstants
     Δ_otimes::Delta_otimes
     Δ_ostar::Delta_ostar
 end
-
-

@@ -1,3 +1,6 @@
+
+using LinearAlgebra
+using Distributions
 using StatsBase
 using OptimalTransport
 using Distances
@@ -66,3 +69,19 @@ function test_wasserstein_computation()
 end
 
 
+#test_wasserstein_computation()
+
+# struct L1DRACParams
+#     ω::Float64
+#     Tₛ::Float64
+#     λₛ::Float64
+# end
+
+# drac_params(ω::Float64, Tₛ::Float64, λₛ::Float64) = L1DRACParams(ω, Tₛ, λₛ)
+
+drac_params_builder = (ω, λₛ) -> (Tₛ -> drac_params(ω, Tₛ, λₛ))
+#  ω_val = 1.0
+#  λₛ_val = 2.2
+
+#  partial_drac = drac_params_builder(ω_val, λₛ_val)
+#  L1params= L1Params(0.001)
