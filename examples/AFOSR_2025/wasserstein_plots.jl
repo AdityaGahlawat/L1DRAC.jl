@@ -39,6 +39,7 @@ function plot_wasserstein(
 
     @assert length(t_vals) == length(w2_vals)
 
+    Tₛ_rounded= round(Tₛ, digits=3)
     # Title — interpolate ω and Tₛ values
     p = plot(t_vals, w2_vals;
         linewidth = 4,
@@ -46,8 +47,9 @@ function plot_wasserstein(
         label = nothing,  # no legend entry for W2 curve
         xlabel = L"t",
         ylabel = L"\mathsf{W}_{2}\!\left(\mathbb{X}_{t},\,\mathbb{X}^\star_{t}\right)",
-        title  = L"\omega=31.4, T_s= 0.0035",
+        title  = latexstring("\\omega = $(ω), T_s= $(Tₛ_rounded)"),
         xlim = (tspan[1], tspan[2]),
+        ylim = (0, 40),
         titlefont = font(20, "Computer Modern"),
         yguidefontsize = 18, xguidefontsize = 18, legendfontsize = 18,
         tickfontsize = 16, gridlinewidth = 2.5, dpi = 300, margin = 5mm,
@@ -64,13 +66,11 @@ function plot_wasserstein(
     # horizontal ρ line with numeric value in legend
     rho_line = rho_r + rho_a
     hline!(p, [rho_line]; linewidth=3, linestyle=:dash, color=colors[2],
-           label=L"\rho = 38.61",yguidefontsize = 18, xguidefontsize = 18, legendfontsize = 18,
+           label=latexstring("ρ = $(ρ)"),yguidefontsize = 18, xguidefontsize = 18, legendfontsize = 18,
         tickfontsize = 16, gridlinewidth = 2.5, dpi = 300, margin = 5mm)
 
     savefig(p, savepath)
     return p
 end
 
-
-plot_wasserstein(tspan, ρᵣ, ρₐ, L2_X0Xr_t0,Δt,bin_width)
 

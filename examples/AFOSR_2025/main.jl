@@ -153,3 +153,8 @@ L1params = drac_params(ω, Tₛ, λₛ)
 # include("plotutils.jl")
 # plotfunc()
 
+# # ###################### Wasserstein PLOTS #########################
+include("wasserstein_plots.jl")
+plot_wasserstein(tspan, ρᵣ, ρₐ, L2_X0Xr_t0,Δt,bin_width)
+
+
