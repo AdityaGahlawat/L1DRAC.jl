@@ -22,7 +22,7 @@ Use the checkboxes to track progress and confirm that all requirements are satis
   ![](https://github.com/AdityaGahlawat/L1DRAC.jl/blob/SambhuCodes/examples/AFOSR_2025/matched_drift_un_ens_plot_wasserstein.png)
 
 
-## STEP 2: Matched drift and matched diffusion uncertainty
+## STEP 2: Matched drift and matched diffusion uncertainty ($K_{\mu}=10.0$,$K_{\sigma}=5.0$ )
 - [x] Ensemble simulation
   ![](https://github.com/AdityaGahlawat/L1DRAC.jl/blob/SambhuCodes/examples/AFOSR_2025/matched_drift_matched_diff_un_ens_plot.png)
 - [x] Control parameter values
