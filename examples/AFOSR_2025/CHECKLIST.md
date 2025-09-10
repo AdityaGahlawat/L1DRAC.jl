@@ -23,11 +23,15 @@ Use the checkboxes to track progress and confirm that all requirements are satis
 
 
 ## STEP 2: Matched drift and matched diffusion uncertainty
-- [] Ensemble simulation
-- [] Control parameter values
-- [] Plots - Uniform bound (UB)
-- [] Plots - Uniform ultimate bound (UUB)
-- [] Plots - Empirical bound
+- [x] Ensemble simulation
+  ![](https://github.com/AdityaGahlawat/L1DRAC.jl/blob/SambhuCodes/examples/AFOSR_2025/matched_drift__matched_diffusion_un_ens_plot.png)
+- [x] Control parameter values
+- [x] Plots - Uniform bound (UB)
+- [x] Plots - Uniform ultimate bound (UUB)
+- [x] Plots - Empirical bound
+  ![](https://github.com/AdityaGahlawat/L1DRAC.jl/blob/SambhuCodes/examples/AFOSR_2025/matched_drift__matched_diffusion_un_ens_plot_wasserstein.png
+
+
 
 ## STEP 3: Add unmatched drift uncertainty
 - [ ] Ensemble simulation
