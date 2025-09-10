@@ -181,3 +181,12 @@ struct TrueSystemConstants
     Δ_otimes::Delta_otimes
     Δ_ostar::Delta_ostar
 end
+
+
+struct EmpiricalSamples
+    μ_samples::Any
+    ν_samples::Any
+end
+
+
+drac_params_constructor = (ω, λₛ) -> (Tₛ -> drac_params(ω, Tₛ , λₛ))

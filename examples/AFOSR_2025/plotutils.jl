@@ -58,7 +58,7 @@ function simplot(sol1::RODESolution, sol2::RODESolution, sol3::RODESolution; lab
 	return mainplot
 end
 # Single system, Ensemble
-function simplot(sol::EnsembleSolution; xlabelstring::LaTeXString, ylabelstring::LaTeXString)
+function simplot(sol::EnsembleSolution, xlabelstring::LaTeXString, ylabelstring::LaTeXString)
 	lw = 1.5 # linewidth
 	lα = 0.1 # linealpha
     l = @layout [a; b]
@@ -132,7 +132,7 @@ end
 ###############################################
 
 ## ENSEMBLE AND PATH PLOTS IN EXAMPLE 1 ##
-function plotfunc()
+function plotfunc(filename)
     l = @layout [a b; c d]
     nom_summ = DE.EnsembleSummary(ens_nom_sol)
     tru_summ = DE.EnsembleSummary(ens_tru_sol)
@@ -155,6 +155,6 @@ function plotfunc()
     plot!(p4, tru_summ, idxs = 2, color = 7, lw = 1, fillalpha = 0.2)
     plot!(p4, L1_summ, idxs = 2, color = 25, lw = 1, fillalpha = 0.2, xlabel= "t")
 
-    return plot(p1, p2, p3, p4, layout = l, size = (900, 900))
+    finalplot = plot(p1, p2, p3, p4, layout = l, size = (650, 650))
+	savefig(finalplot, filename)
 end
-

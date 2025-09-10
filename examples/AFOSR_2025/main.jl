@@ -5,14 +5,27 @@ using L1DRAC
 using LinearAlgebra
 using Distributions
 using ControlSystemsBase
-using JLD2
-import L1DRAC: L1DRACParams
+using JLD2, FileIO
+import L1DRAC: L1DRACParams, InitialDistributions, SysDims
 
 include("constanttypes.jl")
 include("sysconstants.jl")
 include("Tsconstants.jl")
 include("computebounds.jl")
 include("utils.jl")
+
+
+results_directory= "/Users/sambhu/Desktop/L1DRAC.jl/examples/AFOSR_2025/Results/"
+plots_directory= "/Users/sambhu/Desktop/GitRepos/L1DRAC.jl/examples/AFOSR_2025/"
+
+exp_name= "matched_drift_un_"
+# exp_name= "matched_drift_matched_diffusion_un_"
+# exp_name= "unmatched_drift_matched_diffusion_un_"
+# exp_name= "unmatched_drift_unmatched_diffusion_un_n"
+
+ens_nom_sol_filename = results_directory  * exp_name  * "ens_nom_sol.jld2"
+ens_tru_sol_filename = results_directory  * exp_name  * "ens_true_sol.jld2"
+ens_L1_sol_filename =  results_directory  * exp_name  * "ens_l1_sol.jld2"
 
 # System Dimensions 
 n=2
@@ -59,102 +72,125 @@ p_um(t,x) = 2.0*[0.01 0.1]
 p(t,x) = vcat(p_um(t,x), p_m(t,x)) 
 Δp=0.83
 
-nominal_components = nominal_vector_fields(f, g, g_perp, p)
-Δ_star =3.1
-# Uncertain Vector Fields 
-Λμ_um(t,x)  = 1e-4
-Λμ_m(t,x)   = 1.5* (1 + norm(x))
-Δμ_parallel = 1.5
-Δμ_perp =0.01
-Λμ(t,x) = vcat(Λμ_um(t,x), Λμ_m(t,x)) 
-Δμ=1.5
-L_μ=1.5
-L_μ_parallel =1.5
-L_μ_perp = 1e-5
-
-Λσ_um(t,x) = [1e-5 1e-5]
-Λσ_m(t,x) =  [1e-5 1e-5]
-Λσ(t,x) = vcat(Λσ_um(t,x), Λσ_m(t,x))
-uncertain_components = uncertain_vector_fields(Λμ, Λσ)
+# Simulation Parameters
+tspan = (0.0, 3.0)
+Δₜ = 1e-4 # Time step size
+Tₛ = 1e-4 # Time step size
+Ntraj = 100 # Number of trajectories in ensemble simulation
+Δ_saveat = 1e2*Δₜ # Needs to be a integer multiple of Δₜ
+simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
+order_p=1     
 
 # Initial distributions
 nominal_ξ₀ = MvNormal(2.0*ones(2), I(2))
-true_ξ₀ = MvNormal(-15.0*ones(2), 5*I(2))
+true_ξ₀    = MvNormal(-15.0*ones(2), 5*I(2))
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
-# The Wasserstein metric of order 2 between two Normal distributions. Currently, α supports only Normal distributions.
-α = alpha(initial_distributions) 
+
+#Define the nominal system
+nominal_components = nominal_vector_fields(f, g, g_perp, p)
+nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
+
+# Simulate nominal system
+ens_nom_sol = nom_system_simulation(ens_nom_sol_filename, simulation_parameters, nominal_system; overwrite=false)
+Δ_star = Delta_star_computation(ens_nom_sol, order_p ,tspan, Δ_saveat)
+
+# Uncertain Vector Fields 
+# Drift 
+K_mu = 6.0
+Λμ_um(t,x)  = 1e-4
+Λμ_m(t,x)   = K_mu * (1 + norm(x))
+Λμ(t,x) = vcat(Λμ_um(t,x), Λμ_m(t,x)) 
+Δμ=K_mu
+Δμ_parallel = K_mu
+Δμ_perp =0.01
+L_μ=K_mu
+L_μ_parallel =K_mu
+L_μ_perp = 1e-5
+
+# Diffusion
+K_sigma = 0.0
+Λσ_um(t,x) = [1e-5 1e-5]
+Λσ_m(t,x) =  K_sigma * [sqrt(norm(x)) sqrt(norm(x))]
+
+Λσ(t,x) = vcat(Λσ_um(t,x), Λσ_m(t,x))
+uncertain_components = uncertain_vector_fields(Λμ, Λσ)
+Δσ=K_sigma
+Δσ_parallel = K_sigma
+L_σ=K_sigma
+L_σ_parallel =K_sigma
+
+α = alpha_computation(initial_distributions,system_dimensions, Ntraj) 
 
 # Constants ε_r, ε_a from Sec. 3.2
-ϵ_r=0.1
-ϵ_a=0.1
+ϵ_r = 0.1
+ϵ_a =0.1
 
-assumption_constants = assump_consts(; Δg, Δg_perp, Δf, Δ_star,
-                                       Δp,Δp_parallel,Δp_perp, Δμ, Δμ_parallel, Δμ_perp ,
-                                       L_μ, L_μ_parallel,L_μ_perp, L_f, λ, m, ϵ_r, ϵ_a )
+assumption_constants = assump_consts(;
+    Δg, Δg_perp, Δf, Δ_star,
+    Δp, Δp_parallel, Δp_perp,
+    Δμ, Δμ_parallel, Δμ_perp,
+    Δσ, Δσ_parallel,
+    L_μ, L_μ_parallel, L_μ_perp,
+    L_σ, L_σ_parallel,
+    L_f, λ, m, ϵ_r, ϵ_a
+)
 
-# # Reference Process Analysis constants (Sec. A.1)
+
+# # # # # Reference Process Analysis constants (Sec. A.1)
 ref_system_constants =  ref_sys_constants(assumption_constants) 
 
-# # True Process Analysis constants (Sec. A.2)
+# # # # True Process Analysis constants (Sec. A.2)
 true_system_constants = true_sys_constants(assumption_constants)
 
-# # ###################################################################
-# # ## COMPUTATION 
-# # ##################################################################
+##################################################################
+# COMPUTATION 
+#################################################################
 
-# # Define the systems
-nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
+# Define the True system
 true_system = true_sys(system_dimensions, nominal_components, uncertain_components, initial_distributions)
 
-# # # Simulation Parameters
-tspan = (0.0, 3.0)
-Δₜ = 1e-4 # Time step size
-### need to fix this initalizing 
-Tₛ= 1e-3
-Ntraj = 1000 # Number of trajectories in ensemble simulation
-Δ_saveat = 1e2*Δₜ # Needs to be a integer multiple of Δₜ
-simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
-# # # L1 DRAC Parameters  
+# L1 DRAC Parameters  
 ρᵣ, ρₐ, ρ, ω =  rho_and_filter_bandwidth_computation(α, assumption_constants, ref_system_constants, true_system_constants)   
 λₛ = 100. # Predictor Stability Parameter 
 L1params = drac_params(ω, Tₛ ,λₛ)
 
-Tₛ= sampling_period_computation(ρₐ, ρᵣ, ω)
+Tₛ= sampling_period_computation(ρₐ, ρᵣ, ω, Ts_min= Δₜ )
 
-#Need to fix this, calling twice to update Tₛ with new value
+# #Need to fix this, calling twice to update Tₛ with new value
 L1params = drac_params(ω, Tₛ, λₛ)
 
 @show ρᵣ, ρₐ, ρ, ω
 @show Tₛ
 
+# Simulate a single sample path of the true system with L1 control off and on.
 
-# The plots below are retained from the DoubleIntegrator example. To be modified.
+tru_sol = system_simulation(simulation_parameters, true_system);
+L1_sol = system_simulation(simulation_parameters, true_system, L1params);
 
-# Solve for Single Sample Paths
-# nom_sol = system_simulation(simulation_parameters, nominal_system);
-# tru_sol = system_simulation(simulation_parameters, true_system);
-# L1_sol = system_simulation(simulation_parameters, true_system, L1params);
+# Solve for Ensembles of Ntraj Sample Paths
 
-# # Solve for Ensembles of Ntraj Sample Paths
-# @time ens_nom_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
-# @time ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
-# @time ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
+@time ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
+@time ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
+ens_tru_sol_file =results_directory  * exp_name  * "ens_tru_sol.jld2"
+ens_L1_sol_file  =results_directory   * exp_name   * "ens_L1_sol.jld2"
 
-# # # # ###################### SAVE TRAJECTORIES #########################
-# ens_nom_sol = Array(ens_nom_sol)
-# jldsave("ens_nom_solution.jld2"; ens_nom_sol)
-# # jldsave("ens_tru_solution.jld2";ens_tru_sol)
-# ens_L1_sol= Array(ens_L1_sol)
-# jldsave("ens_L1_solution.jld2";ens_L1_sol)
+###################### SAVE TRAJECTORIES #########################
 
-# # ###################### PLOTS #########################
-# include("plotutils.jl")
-# plotfunc()
+jldsave(ens_tru_sol_filename; ens_tru_sol=ens_tru_sol) 
+jldsave(ens_L1_sol_filename; ens_L1_sol=ens_L1_sol) 
 
-# # ###################### Wasserstein PLOTS #########################
+# # # # # ###################### PLOTS #########################
+include("plotutils.jl")
+ens_filename = plots_directory * exp_name * "ens_plot.png"
+plotfunc(ens_filename)
+
+###################### Wasserstein PLOTS #########################
 include("wasserstein_plots.jl")
-plot_wasserstein(tspan, ρᵣ, ρₐ, L2_X0Xr_t0,Δt,bin_width)
+# # ens_nom_sol, ens_tru_sol, ens_L1_sol= load_simulation_data(exp_name);
+wassd_filename = plots_directory * exp_name * "ens_plot_wasserstein.png"
+plot_wasserstein(exp_name, tspan, ρᵣ, ρₐ)
+
 
 

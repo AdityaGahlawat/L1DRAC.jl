@@ -1,21 +1,13 @@
 using JuMP, Ipopt
 using Distributions
 
-function alpha(initial_distributions)
+function alpha_computation(initial_distributions::InitialDistributions,system_dimensions::SysDims, Ntraj::Int)
     @unpack nominal_ξ₀, true_ξ₀ = initial_distributions
 
-    if nominal_ξ₀ isa Normal && true_ξ₀ isa Normal
-        μ1, σ1² = mean(nominal_ξ₀), var(nominal_ξ₀)
-        μ2, σ2² = mean(true_ξ₀),    var(true_ξ₀)
-        return gaussian_wasserstein2([μ1], reshape(σ1²,1,1), [μ2], reshape(σ2²,1,1))
+    empirical_samples= EmpiricalSamples(rand(nominal_ξ₀,  Ntraj),rand(true_ξ₀,  Ntraj) )
+
+    return empirical_wasserstein2(empirical_samples, system_dimensions) 
     
-    elseif nominal_ξ₀ isa MvNormal && true_ξ₀ isa MvNormal
-        μ1, Σ1 = mean(nominal_ξ₀), cov(nominal_ξ₀)
-        μ2, Σ2 = mean(true_ξ₀),    cov(true_ξ₀)
-        return gaussian_wasserstein2(μ1, Σ1, μ2, Σ2)
-    else
-        throw(ArgumentError("alpha currently only supports Normal and MvNormal; got $(typeof(nominal_ξ₀)) and $(typeof(true_ξ₀))."))
-    end
 end
 
 function Gamma_r(rho_r, ω, assumption_constants::AssumptionConstants, ref_system_constants::RefSystemConstants)
@@ -179,9 +171,9 @@ function rho_and_filter_bandwidth_computation( α, assumption_constants::Assumpt
     @unpack λ   = assumption_constants
 
     @variables model begin
-        0.1   <= rho_a <= 1000.0
-        0.1   <= rho_r <= 1000.0
-        2*λ + 1e-2  <= ω  <= 10000.0  
+        rho_a  >= 0.01 
+        rho_r  >=  0.01
+         ω >=  2*λ
     end
 
     register(model, :rho_r_condition, 2, rho_r_condition; autodiff = true)
@@ -191,8 +183,8 @@ function rho_and_filter_bandwidth_computation( α, assumption_constants::Assumpt
 
     @NLconstraint(model, rho_r_condition(rho_r, ω) >= 0)
     @NLconstraint(model, rho_a_condition(rho_a, ω) >= 0)
-    @NLconstraint(model, filter_bandwidth_condition1(rho_r, ω) >= 0.1)
-    @NLconstraint(model, filter_bandwidth_condition2(rho_a, rho_r, ω) >= 0.1)
+    @NLconstraint(model, filter_bandwidth_condition1(rho_r, ω) >= 0.01)
+    @NLconstraint(model, filter_bandwidth_condition2(rho_a, rho_r, ω) >= 0.01)
 
     @objective(model, Min, rho_r + rho_a + ω)
 
@@ -204,20 +196,20 @@ function rho_and_filter_bandwidth_computation( α, assumption_constants::Assumpt
 
 end
 
-function sampling_period_computation(rho_a, rho_r, ω; Ts_low = 0.0, Ts_high = 1.0, tol::Float64=1e-5, max_iter::Int=10_000)
+function sampling_period_computation(rho_a, rho_r, ω; Ts_min = 0.0, Ts_max = 1.0, tol::Float64=1e-5, max_iter::Int=10_000)
 
     itr = 0
-    while (Ts_high - Ts_low ) > tol && itr < max_iter
-        Ts_mid = (Ts_low + Ts_high) / 2
+    while (Ts_max - Ts_min ) > tol && itr < max_iter
+        Ts_mid = (Ts_min + Ts_max) / 2
         
         if sampling_period_condition(rho_a, rho_r, ω, Ts_mid) > 0
-            Ts_low = Ts_mid   
+            Ts_min = Ts_mid   
         else
-            Ts_high = Ts_mid    
+            Ts_max = Ts_mid    
         end
         itr += 1
     end
-    return Ts_low
+    return Ts_min
 end
 
 
