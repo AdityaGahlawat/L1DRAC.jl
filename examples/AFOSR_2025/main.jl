@@ -183,21 +183,21 @@ ens_L1_sol_file  =results_directory   * exp_name   * "ens_L1_sol.jld2"
 
 ###################### SAVE TRAJECTORIES #########################
 
-jldsave(ens_tru_sol_filename; ens_tru_sol=ens_tru_sol) 
-jldsave(ens_L1_sol_filename; ens_L1_sol=ens_L1_sol) 
+# jldsave(ens_tru_sol_filename; ens_tru_sol=ens_tru_sol) 
+# jldsave(ens_L1_sol_filename; ens_L1_sol=ens_L1_sol) 
 
 # # # # # ###################### PLOTS #########################
 include("plotutils.jl")
 plot_ylims= (0, 900.)
 
 ens_filename = plots_directory * exp_name * "ens_plot.png"
-plotfunc(ens_filename,(0.0, 1.0),plot_ylims)
+plotfunc(ens_filename,tspan,plot_ylims)
 
 ###################### Wasserstein PLOTS #########################
-include("wasserstein_plots.jl")
-# # # ens_nom_sol, ens_tru_sol, ens_L1_sol= load_simulation_data(exp_name);
-wassd_filename = plots_directory * exp_name * "ens_plot_wasserstein.png"
-plot_wasserstein(exp_name, (0.0,1.0), ρᵣ, ρₐ; plot_ylims= (0, 250))
+# include("wasserstein_plots.jl")
+# # # # ens_nom_sol, ens_tru_sol, ens_L1_sol= load_simulation_data(exp_name);
+# wassd_filename = plots_directory * exp_name * "ens_plot_wasserstein.png"
+# plot_wasserstein(exp_name, (0.0,1.0), ρᵣ, ρₐ; plot_ylims= (0, 250))
 
 # # # # plot_wasserstein_from_saved_data(exp_name, tspan, ρᵣ, ρₐ)
 
