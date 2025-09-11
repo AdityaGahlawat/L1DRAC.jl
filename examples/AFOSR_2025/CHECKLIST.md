@@ -42,8 +42,10 @@ Use the checkboxes to track progress and confirm that all requirements are satis
 - [ ] Plots - Empirical bound
 
 ## STEP 4: Add unmatched diffusion uncertainty
-- [ ] Ensemble simulation
-- [ ] Control parameter values
-- [ ] Plots - Uniform bound (UB)
-- [ ] Plots - Uniform ultimate bound (UUB)
-- [ ] Plots - Empirical bound
+- [x] Ensemble simulation
+      ![](https://github.com/AdityaGahlawat/L1DRAC.jl/blob/SambhuCodes/examples/AFOSR_2025/unmatched_drift_unmatched_diff_un_nens_plot.png)
+- [x] Control parameter values
+- [x] Plots - Uniform bound (UB)
+- [x] Plots - Uniform ultimate bound (UUB)
+- [x] Plots - Empirical bound
+      ![](https://github.com/AdityaGahlawat/L1DRAC.jl/blob/SambhuCodes/examples/AFOSR_2025/unmatched_drift_unmatched_diff_un_nens_plot_wasserstein.png)
