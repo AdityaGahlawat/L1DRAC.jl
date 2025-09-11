@@ -119,7 +119,7 @@ function filter_bandwidth_condition1(rho_r, ω)
 
     @unpack λ, Δg_perp, Δμ_perp, L_μ_perp = assumption_constants
 
-    lhs = Theta_r(rho_r, ω, assumption_constants, ref_system_constants) / (ω - 2*λ)
+    lhs = Theta_r(rho_r, ω, assumption_constants, ref_system_constants) / abs(2*λ- ω)
     rhs = (1 - (Δg_perp * Δμ_perp) / λ) * (rho_r^2) - α^2 - Gamma_r(rho_r,ω ,assumption_constants, ref_system_constants)
     return rhs - lhs
 end
@@ -128,22 +128,23 @@ function filter_bandwidth_condition2(rho_a, rho_r,  ω)
 
     @unpack λ, Δg_perp, Δμ_perp, L_μ_perp = assumption_constants
 
-    lhs = Theta_a(rho_a, rho_r, ω, assumption_constants, true_system_constants) / (ω - 2*λ)
+    lhs = Theta_a(rho_a, rho_r, ω, assumption_constants, true_system_constants) / abs( 2*λ -ω )
     rhs = (1 - (Δg_perp * L_μ_perp ) / λ) * (rho_a^2)  - Gamma_a(rho_a, ω ,assumption_constants, true_system_constants)
     return rhs - lhs
 end
 
-function sampling_period_condition(rho_a, rho_r,  ω, Ts)
+# The following verifies if a candidate Ts valiue is valid or not
+function sampling_period_condition(rho_a, rho_r,  ω, Ts_candidate)
 
     @unpack λ, Δg_perp, Δμ_perp, L_μ_perp, Δ_star   = assumption_constants
 
     rho_prime= rho_a + rho_r + Δ_star
 
-    lhs = Upsilon_a1(rho_prime, rho_a, Ts, assumption_constants, L1params)
-          +  Upsilon_a2(rho_prime, rho_a, Ts, assumption_constants, L1params)
-            +  Upsilon_a3(rho_prime, rho_a, Ts, assumption_constants, L1params)
+    lhs = Upsilon_a1(rho_prime, rho_a, Ts_candidate, assumption_constants, L1params)
+          +  Upsilon_a2(rho_prime, rho_a, Ts_candidate, assumption_constants, L1params)
+            +  Upsilon_a3(rho_prime, rho_a, Ts_candidate, assumption_constants, L1params)
     rhs = (1 - (Δg_perp * Δμ_perp) / λ) * (rho_a^2)  - Gamma_a(rho_a, ω ,assumption_constants, true_system_constants) 
-             - Theta_a(rho_a, rho_r, ω, assumption_constants, true_system_constants) / (ω - 2*λ)
+             - Theta_a(rho_a, rho_r, ω, assumption_constants, true_system_constants) / abs(2*λ- ω )
     return rhs - lhs
 end
 
@@ -170,11 +171,15 @@ function rho_and_filter_bandwidth_computation( α, assumption_constants::Assumpt
     model = Model(Ipopt.Optimizer)
     @unpack λ   = assumption_constants
 
-    @variables model begin
-        rho_a  >= 0.01 
-        rho_r  >=  0.01
-         ω >=  2*λ
-    end
+    ϵ = 1e-2
+
+    @variable(model, rho_a >= 0.01)
+    @variable(model, rho_r >= 0.01)
+    @variable(model, ω >= 2λ + ϵ)
+
+    set_start_value(rho_a, 50.)
+    set_start_value(rho_r, 400.)
+    set_start_value(ω, 1200.)
 
     register(model, :rho_r_condition, 2, rho_r_condition; autodiff = true)
     register(model, :rho_a_condition, 2, rho_a_condition; autodiff = true)
@@ -196,7 +201,7 @@ function rho_and_filter_bandwidth_computation( α, assumption_constants::Assumpt
 
 end
 
-function sampling_period_computation(rho_a, rho_r, ω; Ts_min = 0.0, Ts_max = 1.0, tol::Float64=1e-5, max_iter::Int=10_000)
+function sampling_period_computation!(rho_a, rho_r, ω; Ts_min = 0.0, Ts_max = 1.0, tol::Float64=1e-5, max_iter::Int=10_000)
 
     itr = 0
     while (Ts_max - Ts_min ) > tol && itr < max_iter
@@ -211,6 +216,8 @@ function sampling_period_computation(rho_a, rho_r, ω; Ts_min = 0.0, Ts_max = 1.
     end
     return Ts_min
 end
+
+
 
 
 

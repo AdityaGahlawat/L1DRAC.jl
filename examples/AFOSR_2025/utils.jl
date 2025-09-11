@@ -59,7 +59,7 @@ function empirical_wasserstein2(empirical_samples::EmpiricalSamples, system_dime
     grid_min = min.(mapslices(minimum, μ_samples; dims=2), mapslices(minimum, ν_samples; dims=2))[:]
     grid_max = max.(mapslices(maximum, μ_samples; dims=2), mapslices(maximum, ν_samples; dims=2))[:]
 
-    bin_width =0.5
+    bin_width =1.0
     Hμ=nothing
     Hν=nothing
     while true
@@ -74,13 +74,13 @@ function empirical_wasserstein2(empirical_samples::EmpiricalSamples, system_dime
         if prod(length.(mids))  <= max_centers
             break
         end
-        bin_width += 0.25
+        bin_width += 1.0
     end
 
     histogram_centers = vec(collect(Iterators.product(midpoints(Hμ.edges[1]),midpoints(Hν.edges[2]))))
 
     # Defining the Cost Matrix between each pair of discretized state space
-    cost_matrix = (pairwise(SqEuclidean(), histogram_centers, histogram_centers))
+    cost_matrix = (pairwise(SqEuclidean(), histogram_centers, histogram_centers))/1000
 
     # @show size(cost_matrix) 
     # @show bin_width
@@ -88,9 +88,9 @@ function empirical_wasserstein2(empirical_samples::EmpiricalSamples, system_dime
     μ = normalize(Hμ, mode=:probability)
     ν = normalize(Hν, mode=:probability)
 
-    @time dist_sq = emd2(μ.weights, ν.weights, cost_matrix, Tulip.Optimizer()) 
+    @time dist_sq = emd2(μ.weights, ν.weights, cost_matrix, Tulip.Optimizer())
 
-    return sqrt(dist_sq)
+    return sqrt(1000*dist_sq)
 
 end
 
