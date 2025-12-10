@@ -454,9 +454,88 @@ end
 # ====================================================================
 
 """
+    Gamma_r_inf(rho_r, constants, ic)
+
+Compute Γ_r in the limit ω → ∞ (where ω/(ω-2λ) → 1).
+Used for finding ρ_r independent of ω choice.
+"""
+function Gamma_r_inf(rho_r, constants::AssumptionConstants, ic::IntermediateConstants)
+    @unpack λ, Δ_star = constants
+    ref = ic.reference
+
+    Δr_circ_1 = ref.circ.Delta_r_circ_1
+    Δr_circ_4 = ref.circ.Delta_r_circ_4
+    Δr_circledcirc_1 = ref.circledcirc.Delta_r_circledcirc_1
+    Δr_circledcirc_4 = ref.circledcirc.Delta_r_circledcirc_4
+    Δr_odot_1 = ref.odot.Delta_r_odot_1
+    Δr_odot_2 = ref.odot.Delta_r_odot_2
+    Δr_odot_3 = ref.odot.Delta_r_odot_3
+    Δr_odot_8 = ref.odot.Delta_r_odot_8
+    Δr_otimes_1 = ref.otimes.Delta_r_otimes_1
+    Δr_circledast_1 = ref.circledast.Delta_r_circledast_1
+
+    # As ω → ∞: ω/(ω-2λ) → 1
+    c_0 = Δr_circ_1 / (2λ) + Δr_circ_4
+    c_half = Δr_circledcirc_1 / (2λ) + Δr_circledcirc_4
+    c_1_a = Δr_odot_1 / (2λ) + Δr_odot_8
+    c_1_b = Δr_odot_2 / (2λ) + Δr_odot_3 / (2 * sqrt(λ)) + (Δr_circledast_1 / (2λ)) * Δ_star
+    c_3_half = Δr_otimes_1 / (2 * sqrt(λ))
+
+    return c_0 + c_half * sqrt(rho_r + Δ_star) + c_1_a * (rho_r + Δ_star) + c_1_b * rho_r + c_3_half * (rho_r + Δ_star)^(3/2)
+end
+
+"""
+    Gamma_a_inf(rho_a, constants, ic)
+
+Compute Γ_a in the limit ω → ∞ (where ω/(ω-2λ) → 1).
+Used for finding ρ_a independent of ω choice.
+"""
+function Gamma_a_inf(rho_a, constants::AssumptionConstants, ic::IntermediateConstants)
+    @unpack λ = constants
+    tru = ic.true_process
+
+    Δ_odot_1 = tru.odot.Delta_odot_1
+    Δ_odot_4 = tru.odot.Delta_odot_4
+    Δ_otimes_1 = tru.otimes.Delta_otimes_1
+
+    # As ω → ∞: ω/(ω-2λ) → 1
+    c_0 = Δ_odot_1 / (2λ) + Δ_odot_4
+    c_half = Δ_otimes_1 / (2 * sqrt(λ))
+
+    return (c_0 + c_half * sqrt(rho_a)) * rho_a
+end
+
+"""
+    rho_r_condition_inf(rho_r, α, constants, ic, ε_r)
+
+ρ_r constraint with ω → ∞. Returns lhs - rhs (≥ 0 means satisfied).
+"""
+function rho_r_condition_inf(rho_r, α, constants::AssumptionConstants, ic::IntermediateConstants, ε_r)
+    @unpack λ, Δg_perp, Δμ_perp = constants
+    coeff = 1 - Δg_perp * Δμ_perp / λ
+    lhs = coeff * rho_r^2
+    rhs = α^2 + Gamma_r_inf(rho_r, constants, ic) + ε_r
+    return lhs - rhs
+end
+
+"""
+    rho_a_condition_inf(rho_a, constants, ic, ε_a)
+
+ρ_a constraint with ω → ∞. Returns lhs - rhs (≥ 0 means satisfied).
+"""
+function rho_a_condition_inf(rho_a, constants::AssumptionConstants, ic::IntermediateConstants, ε_a)
+    @unpack λ, Δg_perp, L_μ_perp = constants
+    coeff = 1 - Δg_perp * L_μ_perp / λ
+    lhs = coeff * rho_a^2
+    rhs = Gamma_a_inf(rho_a, constants, ic) + ε_a
+    return lhs - rhs
+end
+
+"""
     optimal_bounds(constants, ic, init_dist; α_mode=:Wasserstein, ε_r=1e-3, ε_a=1e-3)
 
-Compute optimal (ρ_r, ρ_a, ω) via nonlinear optimization using JuMP + Ipopt.
+Compute optimal (ρ_r, ρ_a, ω) via joint optimization using JuMP + Ipopt.
+Minimizes ρ_r + ρ_a + ω subject to all constraints.
 
 # Arguments
 - `constants::AssumptionConstants` - System constants including λ, Δ_star, etc.
@@ -490,12 +569,11 @@ function optimal_bounds(constants::AssumptionConstants,
     set_silent(model)
 
     # Variables with bounds
-    # ω must be > 2λ for stability
     @variable(model, 1.0 <= rho_r <= 10000.0)
     @variable(model, 1.0 <= rho_a <= 10000.0)
     @variable(model, 2λ + 0.1 <= ω <= 10000.0)
 
-    # Create closure functions for JuMP (capture constants, ic, α, ε)
+    # Create closure functions for JuMP
     _rho_r_cond(rho_r, ω) = rho_r_condition(rho_r, ω, α, constants, ic, ε_r)
     _rho_a_cond(rho_a, ω) = rho_a_condition(rho_a, ω, constants, ic, ε_a)
     _bw_cond_r(rho_r, ω) = bandwidth_condition_r(rho_r, ω, α, constants, ic)
@@ -507,17 +585,16 @@ function optimal_bounds(constants::AssumptionConstants,
     register(model, :bw_cond_r, 2, _bw_cond_r; autodiff=true)
     register(model, :bw_cond_a, 3, _bw_cond_a; autodiff=true)
 
-    # Constraints (all must be ≥ 0)
+    # Constraints
     @NLconstraint(model, rho_r_cond(rho_r, ω) >= 0)
     @NLconstraint(model, rho_a_cond(rho_a, ω) >= 0)
     @NLconstraint(model, bw_cond_r(rho_r, ω) >= 0)
     @NLconstraint(model, bw_cond_a(rho_a, rho_r, ω) >= 0)
 
-    # Objective: minimize total bound (ρ_r + ρ_a) and bandwidth
+    # Objective: minimize total
     @objective(model, Min, rho_r + rho_a + ω)
 
-    # Solve
-    @info "Starting optimization..."
+    @info "Starting joint optimization..."
     optimize!(model)
 
     status = termination_status(model)
@@ -536,13 +613,297 @@ function optimal_bounds(constants::AssumptionConstants,
         return result
     else
         @warn "Optimization did not converge" status
-        return (
-            rho_r = NaN,
-            rho_a = NaN,
-            rho_total = NaN,
-            omega = NaN,
-            α = α,
-            status = status
-        )
+        return (rho_r=NaN, rho_a=NaN, rho_total=NaN, omega=NaN, α=α, status=status)
     end
+end
+
+"""
+    _find_rho_at_omega(ω, α, constants, ic, ε_r, ε_a, rho_r_init, rho_a_init)
+
+Helper: for a fixed ω, find minimum ρ_r and ρ_a satisfying their constraints.
+Uses rho_r_init and rho_a_init as starting points for the optimizer.
+"""
+function _find_rho_at_omega(ω, α, constants::AssumptionConstants, ic::IntermediateConstants, ε_r, ε_a, rho_r_init, rho_a_init)
+    # Find minimum ρ_r at this ω
+    model_r = Model(Ipopt.Optimizer)
+    set_silent(model_r)
+    @variable(model_r, 1.0 <= rho_r <= 10000.0)
+    set_start_value(rho_r, rho_r_init)
+
+    _rho_r_cond(rho_r) = rho_r_condition(rho_r, ω, α, constants, ic, ε_r)
+    register(model_r, :rho_r_cond, 1, _rho_r_cond; autodiff=true)
+    @NLconstraint(model_r, rho_r_cond(rho_r) >= 0)
+    @objective(model_r, Min, rho_r)
+    optimize!(model_r)
+
+    status_r = termination_status(model_r)
+    opt_rho_r = (status_r == MOI.LOCALLY_SOLVED || status_r == MOI.OPTIMAL) ? value(rho_r) : NaN
+
+    # Find minimum ρ_a at this ω
+    model_a = Model(Ipopt.Optimizer)
+    set_silent(model_a)
+    @variable(model_a, 1.0 <= rho_a <= 10000.0)
+    set_start_value(rho_a, rho_a_init)
+
+    _rho_a_cond(rho_a) = rho_a_condition(rho_a, ω, constants, ic, ε_a)
+    register(model_a, :rho_a_cond, 1, _rho_a_cond; autodiff=true)
+    @NLconstraint(model_a, rho_a_cond(rho_a) >= 0)
+    @objective(model_a, Min, rho_a)
+    optimize!(model_a)
+
+    status_a = termination_status(model_a)
+    opt_rho_a = (status_a == MOI.LOCALLY_SOLVED || status_a == MOI.OPTIMAL) ? value(rho_a) : NaN
+
+    return (rho_r=opt_rho_r, rho_a=opt_rho_a)
+end
+
+"""
+    bounds_sweep(init_result, constants, ic; ε_r=1e-3, ε_a=1e-3, ω_max_factor=2.0, n_points=20)
+
+Sweep ω from ω_min (from init_result) upward, computing minimum ρ_r and ρ_a at each point.
+Returns data suitable for plotting the trade-off between ω and ρ.
+
+# Arguments
+- `init_result` - Result from optimal_bounds() containing ω_min (omega) and α
+- `constants::AssumptionConstants` - System constants
+- `ic::IntermediateConstants` - Precomputed intermediate constants
+
+# Keyword Arguments
+- `ε_r::Float64` - Tolerance for ρ_r condition (default 1e-3)
+- `ε_a::Float64` - Tolerance for ρ_a condition (default 1e-3)
+- `ω_max_factor::Float64` - Sweep up to ω_min × this factor (default 2.0)
+- `n_points::Int` - Number of points in sweep (default 20)
+
+# Returns
+Array of `(ω, ρ_total)` tuples.
+
+# Example
+```julia
+result = optimal_bounds(constants, _ic, initial_distributions)
+sweep = bounds_sweep(result, constants, _ic; ω_max_factor=2.0, n_points=20)
+plot(first.(sweep), last.(sweep), xlabel="ω", ylabel="ρ_total")
+```
+"""
+function bounds_sweep(init_result,
+                      constants::AssumptionConstants,
+                      ic::IntermediateConstants;
+                      ε_r::Float64 = 1e-3,
+                      ε_a::Float64 = 1e-3,
+                      ω_max_factor::Float64 = 2.0,
+                      n_points::Int = 20)
+
+    # Extract from init_result
+    ω_min = init_result.omega
+    α = init_result.α
+
+    if isnan(ω_min)
+        @warn "init_result has invalid omega, cannot perform sweep"
+        return nothing
+    end
+
+    ω_max = ω_min * ω_max_factor
+    @info "Sweeping ω" ω_min ω_max n_points
+
+    # Sweep ω values
+    ω_values = range(ω_min, ω_max, length=n_points)
+    rho_r_values = Float64[]
+    rho_a_values = Float64[]
+    rho_total_values = Float64[]
+
+    # Use init values as starting points
+    rho_r_init = init_result.rho_r
+    rho_a_init = init_result.rho_a
+
+    for (i, ω) in enumerate(ω_values)
+        result = _find_rho_at_omega(ω, α, constants, ic, ε_r, ε_a, rho_r_init, rho_a_init)
+        push!(rho_r_values, result.rho_r)
+        push!(rho_a_values, result.rho_a)
+        push!(rho_total_values, result.rho_r + result.rho_a)
+
+        if i % 5 == 0 || i == 1 || i == n_points
+            @info "Sweep progress" i n_points ω rho_total=result.rho_r+result.rho_a
+        end
+    end
+
+    # Return array of (ω, ρ_total) pairs
+    return [(ω, ρ) for (ω, ρ) in zip(ω_values, rho_total_values)]
+end
+
+
+# ====================================================================
+# Diagnostic Functions
+# ====================================================================
+
+"""
+    Gamma_r_breakdown(rho_r, ω, constants, ic)
+
+Break down Γ_r into individual terms to identify dominant contributions.
+Returns a named tuple with each term's value and percentage contribution.
+"""
+function Gamma_r_breakdown(rho_r, ω, constants::AssumptionConstants, ic::IntermediateConstants)
+    @unpack λ, Δ_star = constants
+    ref = ic.reference
+
+    # Extract constants
+    Δr_circ_1 = ref.circ.Delta_r_circ_1
+    Δr_circ_4 = ref.circ.Delta_r_circ_4
+    Δr_circledcirc_1 = ref.circledcirc.Delta_r_circledcirc_1
+    Δr_circledcirc_4 = ref.circledcirc.Delta_r_circledcirc_4
+    Δr_odot_1 = ref.odot.Delta_r_odot_1
+    Δr_odot_2 = ref.odot.Delta_r_odot_2
+    Δr_odot_3 = ref.odot.Delta_r_odot_3
+    Δr_odot_8 = ref.odot.Delta_r_odot_8
+    Δr_otimes_1 = ref.otimes.Delta_r_otimes_1
+    Δr_circledast_1 = ref.circledast.Delta_r_circledast_1
+
+    # Coefficients
+    c_0 = Δr_circ_1 / (2λ) + (ω * Δr_circ_4) / (ω - 2λ)
+    c_half = Δr_circledcirc_1 / (2λ) + (ω * Δr_circledcirc_4) / (ω - 2λ)
+    c_1_a = Δr_odot_1 / (2λ) + (ω * Δr_odot_8) / (ω - 2λ)
+    c_1_b = Δr_odot_2 / (2λ) + Δr_odot_3 / (2 * sqrt(λ)) + (Δr_circledast_1 / (2λ)) * Δ_star
+    c_3_half = Δr_otimes_1 / (2 * sqrt(λ))
+
+    # Individual terms
+    term_0 = c_0                                      # constant term (order 0)
+    term_half = c_half * sqrt(rho_r + Δ_star)         # order 1/2
+    term_1_a = c_1_a * (rho_r + Δ_star)               # order 1 (with Δ_star)
+    term_1_b = c_1_b * rho_r                          # order 1 (rho_r only)
+    term_3_half = c_3_half * (rho_r + Δ_star)^(3/2)   # order 3/2
+
+    total = term_0 + term_half + term_1_a + term_1_b + term_3_half
+
+    @info "Γ_r Breakdown" rho_r ω Δ_star total
+    @info "  Term 0 (constant)" value=term_0 coeff=c_0 pct=round(100*term_0/total, digits=1)
+    @info "  Term 1/2 (√(ρ_r+Δ_★))" value=term_half coeff=c_half pct=round(100*term_half/total, digits=1)
+    @info "  Term 1a ((ρ_r+Δ_★))" value=term_1_a coeff=c_1_a pct=round(100*term_1_a/total, digits=1)
+    @info "  Term 1b (ρ_r)" value=term_1_b coeff=c_1_b pct=round(100*term_1_b/total, digits=1)
+    @info "  Term 3/2 ((ρ_r+Δ_★)^1.5)" value=term_3_half coeff=c_3_half pct=round(100*term_3_half/total, digits=1)
+
+    return (
+        total = total,
+        term_0 = term_0,
+        term_half = term_half,
+        term_1_a = term_1_a,
+        term_1_b = term_1_b,
+        term_3_half = term_3_half,
+        coeffs = (c_0 = c_0, c_half = c_half, c_1_a = c_1_a, c_1_b = c_1_b, c_3_half = c_3_half),
+        percentages = (
+            term_0 = 100*term_0/total,
+            term_half = 100*term_half/total,
+            term_1_a = 100*term_1_a/total,
+            term_1_b = 100*term_1_b/total,
+            term_3_half = 100*term_3_half/total
+        )
+    )
+end
+
+"""
+    Gamma_a_breakdown(rho_a, ω, constants, ic)
+
+Break down Γ_a into individual terms to identify dominant contributions.
+"""
+function Gamma_a_breakdown(rho_a, ω, constants::AssumptionConstants, ic::IntermediateConstants)
+    @unpack λ = constants
+    tru = ic.true_process
+
+    Δ_odot_1 = tru.odot.Delta_odot_1
+    Δ_odot_4 = tru.odot.Delta_odot_4
+    Δ_otimes_1 = tru.otimes.Delta_otimes_1
+
+    c_0 = Δ_odot_1 / (2λ) + (ω * Δ_odot_4) / (ω - 2λ)
+    c_half = Δ_otimes_1 / (2 * sqrt(λ))
+
+    # Γ_a = (c_0 + c_half * √ρ_a) * ρ_a
+    term_linear = c_0 * rho_a           # linear in ρ_a
+    term_3_half = c_half * rho_a^(3/2)  # order 3/2
+
+    total = term_linear + term_3_half
+
+    @info "Γ_a Breakdown" rho_a ω total
+    @info "  Term linear (c_0 * ρ_a)" value=term_linear coeff=c_0 pct=round(100*term_linear/total, digits=1)
+    @info "  Term 3/2 (c_half * ρ_a^1.5)" value=term_3_half coeff=c_half pct=round(100*term_3_half/total, digits=1)
+
+    return (
+        total = total,
+        term_linear = term_linear,
+        term_3_half = term_3_half,
+        coeffs = (c_0 = c_0, c_half = c_half),
+        percentages = (term_linear = 100*term_linear/total, term_3_half = 100*term_3_half/total)
+    )
+end
+
+"""
+    summarize_intermediate_constants(ic)
+
+Print summary of all intermediate constants, sorted by magnitude.
+Helps identify which Delta values are driving large bounds.
+"""
+function summarize_intermediate_constants(ic::IntermediateConstants)
+    ref = ic.reference
+    tru = ic.true_process
+
+    # Collect all reference process constants
+    ref_constants = [
+        ("Δr_circ_1", ref.circ.Delta_r_circ_1),
+        ("Δr_circ_2", ref.circ.Delta_r_circ_2),
+        ("Δr_circ_3", ref.circ.Delta_r_circ_3),
+        ("Δr_circ_4", ref.circ.Delta_r_circ_4),
+        ("Δr_circledcirc_1", ref.circledcirc.Delta_r_circledcirc_1),
+        ("Δr_circledcirc_2", ref.circledcirc.Delta_r_circledcirc_2),
+        ("Δr_circledcirc_3", ref.circledcirc.Delta_r_circledcirc_3),
+        ("Δr_circledcirc_4", ref.circledcirc.Delta_r_circledcirc_4),
+        ("Δr_odot_1", ref.odot.Delta_r_odot_1),
+        ("Δr_odot_2", ref.odot.Delta_r_odot_2),
+        ("Δr_odot_3", ref.odot.Delta_r_odot_3),
+        ("Δr_odot_4", ref.odot.Delta_r_odot_4),
+        ("Δr_odot_5", ref.odot.Delta_r_odot_5),
+        ("Δr_odot_6", ref.odot.Delta_r_odot_6),
+        ("Δr_odot_7", ref.odot.Delta_r_odot_7),
+        ("Δr_odot_8", ref.odot.Delta_r_odot_8),
+        ("Δr_otimes_1", ref.otimes.Delta_r_otimes_1),
+        ("Δr_otimes_2", ref.otimes.Delta_r_otimes_2),
+        ("Δr_otimes_3", ref.otimes.Delta_r_otimes_3),
+        ("Δr_otimes_4", ref.otimes.Delta_r_otimes_4),
+        ("Δr_otimes_5", ref.otimes.Delta_r_otimes_5),
+        ("Δr_circledast_1", ref.circledast.Delta_r_circledast_1),
+        ("Δr_circledast_2", ref.circledast.Delta_r_circledast_2),
+        ("Δr_circledast_3", ref.circledast.Delta_r_circledast_3),
+    ]
+
+    # Collect all true process constants
+    true_constants = [
+        ("Δ_hat_1", tru.hat.Delta_hat_1),
+        ("Δ_hat_2", tru.hat.Delta_hat_2),
+        ("Δ_hat_3", tru.hat.Delta_hat_3),
+        ("Δ_hat_4", tru.hat.Delta_hat_4),
+        ("Δ_hat_5", tru.hat.Delta_hat_5),
+        ("Δ_circledcirc_1", tru.circledcirc.Delta_circledcirc_1),
+        ("Δ_odot_1", tru.odot.Delta_odot_1),
+        ("Δ_odot_2", tru.odot.Delta_odot_2),
+        ("Δ_odot_3", tru.odot.Delta_odot_3),
+        ("Δ_odot_4", tru.odot.Delta_odot_4),
+        ("Δ_otimes_1", tru.otimes.Delta_otimes_1),
+        ("Δ_otimes_2", tru.otimes.Delta_otimes_2),
+        ("Δ_otimes_3", tru.otimes.Delta_otimes_3),
+        ("Δ_otimes_4", tru.otimes.Delta_otimes_4),
+        ("Δ_circledast_1", tru.circledast.Delta_circledast_1),
+        ("Δ_circledast_2", tru.circledast.Delta_circledast_2),
+        ("Δ_circledast_3", tru.circledast.Delta_circledast_3),
+    ]
+
+    # Sort by magnitude (descending)
+    ref_sorted = sort(ref_constants, by=x->abs(x[2]), rev=true)
+    true_sorted = sort(true_constants, by=x->abs(x[2]), rev=true)
+
+    @info "=== Reference Process Constants (sorted by magnitude) ==="
+    for (name, val) in ref_sorted[1:min(10, length(ref_sorted))]
+        @info "  $name = $val"
+    end
+
+    @info "=== True Process Constants (sorted by magnitude) ==="
+    for (name, val) in true_sorted[1:min(10, length(true_sorted))]
+        @info "  $name = $val"
+    end
+
+    return (reference = ref_sorted, true_process = true_sorted)
 end
