@@ -21,6 +21,8 @@ export system_simulation
 export concat_state
 export drac_params
 export predictor_test
+export assumption_constants
+export validate
 
 
 include("types.jl")

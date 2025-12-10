@@ -11,7 +11,7 @@ using ControlSystemsBase
 # Simulation Parameters
 tspan = (0.0, 5.0)
 Δₜ = 1e-4 # Time step size
-Ntraj = 1000 # Number of trajectories in ensemble simulation
+Ntraj = 10 # Number of trajectories in ensemble simulation
 Δ_saveat = 1e2*Δₜ # Needs to be a integer multiple of Δₜ
 simulation_parameters = sim_params(tspan, Δₜ, Ntraj, Δ_saveat)
 
@@ -24,6 +24,7 @@ system_dimensions = sys_dims(n, m, d)
 
 # Nominal Vector Fields
 λ = 3.0 # Stability of nominal system 
+constants = assumption_constants(λ = λ)
 function trck_traj(t) # Reference trajectory for Nominal deterministic system to track 
     return [5*sin(t) + 3*cos(2*t); 0.]
 end
@@ -59,6 +60,9 @@ nominal_components = nominal_vector_fields(f, g, g_perp, p)
 Λσ_m(t,x) = 1.0*[0.0 5+sin(x[2])+5.0*sqrt(norm(x))]
 Λσ(t,x) = vcat(Λσ_um(t,x), Λσ_m(t,x))
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
+
+# Constants 
+
 
 # Initial distributions
 nominal_ξ₀ = MvNormal(20.0*ones(n), 1e2*I(n))
