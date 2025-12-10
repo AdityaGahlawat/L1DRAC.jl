@@ -4,6 +4,7 @@ using LinearAlgebra
 using DifferentialEquations
 using UnPack
 using ProgressLogging
+using Distributions
 
 # Types for solutions, needed for multiple dispatch plot functions
 export RODESolution 
@@ -21,9 +22,13 @@ export system_simulation
 export concat_state
 export drac_params
 export predictor_test
+export assumption_constants
+export validate
+export Delta_star_Linear_Nominal
 
 
 include("types.jl")
+include("momentfunctions.jl")
 include("simfunctions.jl")
 include("L1functions.jl")
 
