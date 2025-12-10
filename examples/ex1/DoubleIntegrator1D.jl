@@ -23,7 +23,7 @@ d=2
 system_dimensions = sys_dims(n, m, d)
 
 # Nominal Vector Fields
-λ = 3.0 # Stability of nominal system 
+λ = 10.0 # Stability of nominal system 
 function trck_traj(t) # Reference trajectory for Nominal deterministic system to track 
     return [5*sin(t) + 3*cos(2*t); 0.]
 end
@@ -65,8 +65,10 @@ nominal_components = nominal_vector_fields(f, g, g_perp, p)
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
 # Initial distributions
-nominal_ξ₀ = MvNormal(20.0*ones(n), 1e2*I(n))
-true_ξ₀ = MvNormal(-2.0*ones(n), 1e1*I(n))
+# nominal_ξ₀ = MvNormal(20.0*ones(n), 1e2*I(n))
+nominal_ξ₀ = MvNormal(1e-2*ones(n), 1*I(n))
+# true_ξ₀ = MvNormal(-2.0*ones(n), 1e1*I(n))
+true_ξ₀ = MvNormal(-1.0*ones(n), 1e-1*I(n))
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
 
@@ -114,15 +116,6 @@ constants = assumption_constants(
 
 
 
-# L1 DRAC Parameters  
-ω = 50.    
-Tₛ = 10*Δₜ # Needs to be a integer multiple of Δₜ
-λₛ = 100. # Predictor Stability Parameter 
-L1params = drac_params(ω, Tₛ, λₛ)
-
-###################################################################
-## COMPUTATION 
-##################################################################
 
 # Define the systems
 nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
@@ -130,6 +123,32 @@ true_system = true_sys(system_dimensions, nominal_components, uncertain_componen
 
 # Checking the completeness of defining the constants
 validate(constants, true_system)
+
+# Compute control parameters
+_ic = intermediate_constants(constants, system_dimensions)
+α0 = alpha_zero(initial_distributions, 2*constants.order_p; mode=:Wasserstein)
+# α0 = alpha_zero(initial_distributions, 2*constants.order_p; mode=:Lp_norm)
+internal_opt = optimal_bounds(constants, _ic, initial_distributions)
+
+# Guarantees    
+ρ_r = internal_opt.rho_r
+ρ_a = internal_opt.rho_a
+ρ = ρ_r + ρ_a
+
+# L1 DRAC Parameters  
+ω = internal_opt.omega # Bandwidth    
+Tₛ = 10*Δₜ # Needs to be a integer multiple of Δₜ
+λₛ = 100. # Predictor Stability Parameter 
+L1params = drac_params(ω, Tₛ, λₛ)
+
+
+
+
+
+
+###################################################################
+## COMPUTATION 
+##################################################################
 
 # Solve for Single Sample Paths
 nom_sol = system_simulation(simulation_parameters, nominal_system);
