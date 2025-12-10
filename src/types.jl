@@ -82,6 +82,7 @@ struct AssumptionConstants
     λ::Float64                      # contraction rate: μ(∇_x F̄_μ) ≤ -λ
 
     #= Assumption 3: Bounded Moments =#
+    order_p::Int                    # moment order p* ∈ ℕ≥1
     Δ_star::Float64                 # ‖X*(t)‖_{L_{2p*}} ≤ Δ*
 
     #= Assumption 4: True (Uncertain) System =#
@@ -144,6 +145,7 @@ function assumption_constants(; kwargs...)
         # Assumption 2: Stability
         get(kwargs, :λ, 0.0),
         # Assumption 3: Bounded Moments
+        get(kwargs, :order_p, 1),
         get(kwargs, :Δ_star, 0.0),
         # Assumption 4: True System
         get(kwargs, :Δμ, 0.0),
@@ -185,7 +187,7 @@ const MANDATORY_CONSTANTS = [
     :Δf, :Δp, :Lhat_p, :L_p,           # Assumption 1: drift and diffusion
     :Δg, :Δg_dot, :Δg_perp, :Δ_Θ,      # Assumption 1: input operator
     :λ,                                 # Assumption 2: stability
-    :Δ_star                             # Assumption 3: bounded moments
+    :order_p, :Δ_star                   # Assumption 3: bounded moments
 ]
 
 # Contextual constants required when using TrueSystem (uncertainties)
@@ -205,6 +207,10 @@ function validate(constants::AssumptionConstants)
         if field ∉ constants._set_fields
             error("Mandatory constant $field was not set")
         end
+    end
+    # Check order_p ≥ 1
+    if constants.order_p < 1
+        error("order_p must be ≥ 1, got $(constants.order_p)")
     end
     return true
 end
