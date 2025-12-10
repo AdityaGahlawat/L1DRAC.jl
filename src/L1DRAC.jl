@@ -40,11 +40,12 @@ export frakp, frakp_prime, frakp_double_prime, Lip_f
 
 # Bound functions exports
 export alpha_zero
-export Gamma_r, Gamma_a
+export Gamma_r, Gamma_a, Gamma_r_inf, Gamma_a_inf
 export Theta_r, Theta_a
-export optimal_bounds
-export rho_r_condition, rho_a_condition
+export optimal_bounds, bounds_sweep
+export rho_r_condition, rho_a_condition, rho_r_condition_inf, rho_a_condition_inf
 export bandwidth_condition_r, bandwidth_condition_a
+export Gamma_r_breakdown, Gamma_a_breakdown, summarize_intermediate_constants
 
 
 include("types.jl")

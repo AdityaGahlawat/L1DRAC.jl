@@ -55,12 +55,15 @@ p_m(t,x) = 1.0*[0.0 0.8]
 p(t,x) = vcat(p_um(t,x), p_m(t,x)) 
 nominal_components = nominal_vector_fields(f, g, g_perp, p)
 
-# Uncertain Vector Fields 
+# Uncertain Vector Fields
 Λμ_um(t,x) = 1e-2*(1+sin(x[1]))
 Λμ_m(t,x) = 1.0*(5+10*cos(x[2])+5*norm(x))
-Λμ(t,x) = vcat(Λμ_um(t,x), Λμ_m(t,x)) 
-Λσ_um(t,x) = 1e-2*[0.1+cos(x[2]) 2]
-Λσ_m(t,x) = 1.0*[0.0 5+sin(x[2])+5.0*sqrt(norm(x))]
+Λμ(t,x) = vcat(Λμ_um(t,x), Λμ_m(t,x))
+
+# Scaling parameter for σ uncertainty
+σ_scale = 1.
+Λσ_um(t,x) = 0.0*[0.1+cos(x[2]) 2]
+Λσ_m(t,x) = σ_scale*[0.0 5+sin(x[2])+5.0*(norm(x) < 1 ? norm(x) : sqrt(norm(x)))]
 Λσ(t,x) = vcat(Λσ_um(t,x), Λσ_m(t,x))
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
@@ -84,9 +87,9 @@ constants = assumption_constants(
     Δp = norm([0.02 0.2; 0.0 0.8]), 
     Lhat_p = 0.0, 
     L_p = 0.0,
-    Δσ = sqrt(121.000521), 
-    Δσ_parallel = 11.0, 
-    Δσ_perp = sqrt(0.000521),
+    Δσ = 10.0 * σ_scale,
+    Δσ_parallel = 10.0 * σ_scale,
+    Δσ_perp = 0.0,
     Δμ = sqrt(400.0004), 
     Δμ_parallel = 20.0, 
     Δμ_perp = 0.02,
@@ -102,11 +105,11 @@ constants = assumption_constants(
     Lhat_μ_parallel = 0.0, 
     L_μ_perp = 0.01, 
     Lhat_μ_perp = 0.0, 
-    L_σ = sqrt(49.0004), 
-    Lhat_σ = 0.0, 
-    L_σ_parallel = 7.0, 
-    Lhat_σ_parallel = 0.0, 
-    L_σ_perp = 0.02, 
+    L_σ = 6.0 * σ_scale,
+    Lhat_σ = 0.0,
+    L_σ_parallel = 6.0 * σ_scale,
+    Lhat_σ_parallel = 0.0,
+    L_σ_perp = 0.0,
     Lhat_σ_perp = 0.0, 
     L_f = 5 + sqrt(34), 
     Lhat_f = 0.0,
@@ -126,9 +129,13 @@ validate(constants, true_system)
 
 # Compute control parameters
 _ic = intermediate_constants(constants, system_dimensions)
-α0 = alpha_zero(initial_distributions, 2*constants.order_p; mode=:Wasserstein)
+# α0 = alpha_zero(initial_distributions, 2*constants.order_p; mode=:Wasserstein)
 # α0 = alpha_zero(initial_distributions, 2*constants.order_p; mode=:Lp_norm)
-internal_opt = optimal_bounds(constants, _ic, initial_distributions)
+internal_opt = optimal_bounds(constants, _ic, initial_distributions; α_mode=:Wasserstein, ε_r=1e-4, ε_a=1e-4)
+# ω_max_factor: sweep ω from ω_min to ω_min × factor (2.0 → sweep to 2× ω_min)
+# n_points: number of ω values to evaluate in that range
+sweep = bounds_sweep(internal_opt, constants, _ic; ω_max_factor=10.0, n_points=30)
+
 
 # Guarantees    
 ρ_r = internal_opt.rho_r
@@ -140,6 +147,15 @@ internal_opt = optimal_bounds(constants, _ic, initial_distributions)
 Tₛ = 10*Δₜ # Needs to be a integer multiple of Δₜ
 λₛ = 100. # Predictor Stability Parameter 
 L1params = drac_params(ω, Tₛ, λₛ)
+
+## ANALYSIS 
+
+# Break down Γ_r terms
+Gamma_r_breakdown(internal_opt.rho_r, internal_opt.omega, constants, _ic)
+# Break down Γ_a terms
+Gamma_a_breakdown(internal_opt.rho_a, internal_opt.omega, constants, _ic)
+# See which Delta constants are largest
+summarize_intermediate_constants(_ic)
 
 
 
