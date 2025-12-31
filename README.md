@@ -2,7 +2,16 @@
 
 > ### *Under active development*
 
-Package for the numerical implementation of $\mathcal{L}_1$ Distributionally Robust Adaptive Control ($\mathcal{L}_1$-DRAC). Find out more about it in our [paper](https://adityagahlawat.github.io/Preprints/DRAC.pdf):
+## Table of Contents
+- [Description](#descrrption)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Example](#example)
+- [TODO](#todo)
+
+### Description
+
+Package for the numerical implementation of ***$\mathcal{L}_1$ Distributionally Robust Adaptive Control ($\mathcal{L}_1$-DRAC)***. Find out more about it in our [paper](https://adityagahlawat.github.io/Preprints/DRAC.pdf):
 ```
 @article{gahlawat2025DRAC,
   title={$\mathcal{L}_1$-DRAC: Distributionally Robust Adaptive Control},
@@ -11,17 +20,31 @@ Package for the numerical implementation of $\mathcal{L}_1$ Distributionally Rob
   year={2025}
 }
 ```
-## Problem Formulation
 
-*Under Construction*
-
-## Usage
 
 ### Installation
 
 ```julia
 julia> ] add https://github.com/AdityaGahlawat/L1DRAC.jl
 ```
+
+### Project Structure
+
+```
+L1DRAC/
+├── examples/
+│   └── ex1/
+├── src/
+├── test/
+├── Writeups/
+├── LICENSE
+├── Manifest.toml
+├── Project.toml
+├── README.md
+└── TODO.md
+```
+
+
 
 ### Example
 
@@ -123,6 +146,10 @@ plotfunc()
 
 
 ## TODO
- - Update paper on link
- - Update paper to ArXiV when available
- - Add problem formulation (use md code from Pluto notebooks)
+ - Parallelize over ML server
+ - Move examples to Pluto
+ - Project.toml for examples
+    - Clean up package's Project.toml
+- Baseline Control Function (not implied in f(t,x))
+- L1 control function 
+- L1 sim function to be moved to with the other sim functions (3 methods)
