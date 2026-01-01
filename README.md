@@ -149,8 +149,8 @@ plotfunc()
 ## TODO
  - Parallelize over ML server
  - Move examples to Pluto
- - Project.toml for examples
-    - Clean up package's Project.toml
 - Baseline Control Function (not implied in f(t,x))
-- L1 control function 
+- L1 control function
 - L1 sim function to be moved to with the other sim functions (3 methods)
+- ~~Project.toml for examples~~ (not worth it - Julia environments are overly complicated for this use case)
+    - ~~Clean up package's Project.toml~~
