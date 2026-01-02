@@ -68,10 +68,8 @@ nominal_components = nominal_vector_fields(f, g, g_perp, p)
 uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
 # Initial distributions
-# nominal_ξ₀ = MvNormal(20.0*ones(n), 1e2*I(n))
-nominal_ξ₀ = MvNormal(1e-2*ones(n), 1*I(n))
-# true_ξ₀ = MvNormal(-2.0*ones(n), 1e1*I(n))
-true_ξ₀ = MvNormal(-1.0*ones(n), 1e-1*I(n))
+nominal_ξ₀ = MvNormal(20.0*ones(n), 1e2*I(n))
+true_ξ₀ = MvNormal(-2.0*ones(n), 1e1*I(n))
 initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
 
@@ -172,9 +170,9 @@ tru_sol = system_simulation(simulation_parameters, true_system);
 L1_sol = system_simulation(simulation_parameters, true_system, L1params);
 
 # Solve for Ensembles of Ntraj Sample Paths
-@time ens_nom_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
-@time ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
-@time ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
+ens_nom_sol = system_simulation(simulation_parameters, nominal_system; simtype = :ensemble);
+ens_tru_sol = system_simulation(simulation_parameters, true_system; simtype = :ensemble);
+ens_L1_sol = system_simulation(simulation_parameters, true_system, L1params; simtype = :ensemble);
 ###################### PLOTS #########################
 include("plotutils.jl")
 plotfunc()

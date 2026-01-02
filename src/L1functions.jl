@@ -99,14 +99,22 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
     #############################################################
 	# Solve the problem
 	if haskey(kwargs, :simtype) && kwargs[:simtype] == :ensemble
-        @info "Running Ensemble Simulation of L1 System"
+        backend = get(kwargs, :backend, :cpu)
+        ensemble_alg = if backend == :cpu
+            EnsembleThreads()
+        # Future: elseif backend == :gpu
+        #     EnsembleGPUArray()
+        else
+            error("Unknown backend: $backend. Supported: :cpu")
+        end
+        @info "Running Ensemble Simulation of L1 System" backend=backend
         function L1_prob_func(prob, i, repeat)
             rand_init = rand(true_ξ₀)
             remake(prob, u0 = vcat(rand_init, rand_init, zeros(m))) # System and predictor initialized by the same initial condition
             # zeros(m) is the initial condition for the filter state
         end
         ensemble_L1_problem = EnsembleProblem(L1_problem, prob_func = L1_prob_func)
-        L1_sol = solve(ensemble_L1_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, callback = adaptive_law_callback, saveat = Δ_saveat)
+        L1_sol = solve(ensemble_L1_problem, EM(), ensemble_alg, dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, callback = adaptive_law_callback, saveat = Δ_saveat)
     else
         @info "Running Single Trajectory Simulation of L1 System" 
 	    L1_sol = solve(L1_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, callback = adaptive_law_callback, saveat = Δ_saveat)
