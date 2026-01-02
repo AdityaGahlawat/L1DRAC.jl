@@ -4,6 +4,8 @@ using LinearAlgebra
 using DifferentialEquations
 using UnPack
 using ProgressLogging
+using TerminalLoggers
+using Logging: global_logger
 using Distributions
 using OptimalTransport
 using JuMP
@@ -55,5 +57,8 @@ include("boundfunctions.jl")
 include("simfunctions.jl")
 include("L1functions.jl")
 
+function __init__()
+    global_logger(TerminalLogger())
+end
 
 end

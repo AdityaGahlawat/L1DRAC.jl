@@ -61,12 +61,20 @@ function system_simulation(simulation_parameters::SimParams, nominal_system::Nom
     nominal_problem = SDEProblem(_nominal_drift!, _nominal_diffusion!, nom_init, tspan, noise_rate_prototype = zeros(n, d), (nominal_system,))
     # Solve the problem
     if haskey(kwargs, :simtype) && kwargs[:simtype] == :ensemble
-        @info "Running Ensemble Simulation of Nominal System"
+        backend = get(kwargs, :backend, :cpu)
+        ensemble_alg = if backend == :cpu
+            EnsembleThreads()
+        # Future: elseif backend == :gpu
+        #     EnsembleGPUArray()
+        else
+            error("Unknown backend: $backend. Supported: :cpu")
+        end
+        @info "Running Ensemble Simulation of Nominal System" backend=backend
         function nominal_prob_func(prob, i, repeat)
             remake(prob, u0 = rand(nominal_ξ₀))
         end
         ensemble_nominal_problem = EnsembleProblem(nominal_problem, prob_func = nominal_prob_func)
-        nominal_sol = solve(ensemble_nominal_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
+        nominal_sol = solve(ensemble_nominal_problem, EM(), ensemble_alg, dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     else
         @info "Running Single Trajectory Simulation of Nominal System" 
 	    nominal_sol = solve(nominal_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
@@ -85,12 +93,20 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
 	true_problem = SDEProblem(_true_drift!, _true_diffusion!, true_init, tspan, noise_rate_prototype = zeros(n, d), (true_system, ))
 	# Solve the problem
 	if haskey(kwargs, :simtype) && kwargs[:simtype] == :ensemble
-        @info "Running Ensemble Simulation of True System"
+        backend = get(kwargs, :backend, :cpu)
+        ensemble_alg = if backend == :cpu
+            EnsembleThreads()
+        # Future: elseif backend == :gpu
+        #     EnsembleGPUArray()
+        else
+            error("Unknown backend: $backend. Supported: :cpu")
+        end
+        @info "Running Ensemble Simulation of True System" backend=backend
         function true_prob_func(prob, i, repeat)
             remake(prob, u0 = rand(true_ξ₀))
         end
         ensemble_true_problem = EnsembleProblem(true_problem, prob_func = true_prob_func)
-        true_sol = solve(ensemble_true_problem, EM(), dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
+        true_sol = solve(ensemble_true_problem, EM(), ensemble_alg, dt=Δₜ, trajectories = Ntraj, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     else
         @info "Running Single Trajectory Simulation of True System" 
 	    true_sol = solve(true_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
