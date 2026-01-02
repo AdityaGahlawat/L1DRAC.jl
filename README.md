@@ -25,11 +25,10 @@ Package for the numerical implementation of ***$\mathcal{L}_1$ Distributionally 
 
 ### Installation
 
-*STEP 1: Enable [multi-threading](https://docs.julialang.org/en/v1/manual/multi-threading/)*
-1. Check available threads in your terminal: `nproc`
-2. Start Julia with: `julia -t auto` or `julia -t N` (where N is the number of threads, e.g., `julia -t 8`)
-3. Verify inside Julia: `Threads.nthreads()` 
-    - See [Julia Multi-Threading documentation](https://docs.julialang.org/en/v1/manual/multi-threading/) for more details.
+**STEP 1**: Enable [multi-threading](https://docs.julialang.org/en/v1/manual/multi-threading/)
+- Check available threads in your terminal: `nproc`
+- Start Julia with: `julia -t auto` or `julia -t N` (where N is the number of threads, e.g., `julia -t 8`)
+- Verify inside Julia: `Threads.nthreads()` 
 
 ```julia
 julia> ] add https://github.com/AdityaGahlawat/L1DRAC.jl
