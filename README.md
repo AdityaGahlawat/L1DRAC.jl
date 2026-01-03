@@ -152,10 +152,41 @@ plotfunc()
 
 
 ## TODO
- - Parallelize over ML server
- - Move examples to Pluto
-- Baseline Control Function (not implied in f(t,x))
-- L1 control function
+- Parallelize over ML server
+- Move examples to Pluto
+- Control logging with flags (baseline, L1, Total)
+    - Baseline Control Function and logging
+    - L1 control logging
 - L1 sim function to be moved to with the other sim functions (3 methods)
 - ~~Project.toml for examples~~ (not worth it - Julia environments are overly complicated for this use case)
     - ~~Clean up package's Project.toml~~
+
+---
+
+## Important Changes to Document
+
+#### 1. GPU Parallelization (`max_GPUs` flag)
+
+**What it does:** Controls whether ensemble simulations run on CPU or GPU.
+
+**Values:**
+- `max_GPUs = 0` → Force CPU only (uses multi-threading via `EnsembleThreads`)
+- `max_GPUs = 1` → Use single GPU if available, else fall back to CPU (default)
+- `max_GPUs = N` → Use up to N GPUs (via Distributed.jl, adds overhead)
+
+**How it works:** The package detects available GPUs automatically via `CUDA.devices()`. The actual number used is `numGPUs = min(max_GPUs, available_GPUs)`. So if you set `max_GPUs = 1` but have no GPU, it automatically falls back to CPU.
+
+**Requirements for GPU:** NVIDIA GPU + CUDA drivers + CUDA.jl package. If these aren't present, the package falls back to CPU.
+
+**Why single GPU is recommended:** Multi-GPU uses Distributed.jl which spawns separate worker processes. The inter-process communication overhead is larger than the GPU compute time for our SDEs. Benchmarks showed single GPU is faster than 2-3 GPUs.
+
+**Limitation:** L1DRAC system (with adaptive callback) remains CPU-only. GPU only works for Nominal and True system simulations.
+
+**Usage:**
+```julia
+# Set at top of script before any GPU code runs
+max_GPUs = 1
+
+# Then run ensemble simulation
+ens_nom_sol = system_simulation(params, nominal_system; simtype=:ensemble, backend=:gpu)
+```

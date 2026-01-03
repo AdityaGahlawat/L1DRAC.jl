@@ -1,5 +1,7 @@
 ## TODO List (Aditya & Sambhu)
 
+Check the todos at the bottom of README.md
+
 - [x] Create functions to define all the constants used in the manuscript  
 - [x] Create a function to define the $\rho_r$ and $\rho_a$ condition checks for a given set of assumption parameters  
 - [x] Test with a random set of values for the assumption constants and verify that all the $\Delta$'s return valid values (no NaN or absurd numbers)  
