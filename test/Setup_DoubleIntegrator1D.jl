@@ -1,9 +1,5 @@
 # Setup for Double Integrator 1D benchmark
 
-using L1DRAC
-using LinearAlgebra
-using Distributions
-using ControlSystemsBase
 
 # Benchmark constants (fixed for this system)
 const BENCHMARK_n = 2

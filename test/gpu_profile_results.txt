@@ -1,0 +1,44 @@
+GPU Profile Results
+============================================================
+Date: 2026-01-02T00:44:51.371
+Ntraj: 10000
+Samples: 100
+GPUs: 3
+
+BENCHMARK RESULTS (times in ms)
+------------------------------------------------------------
+
+Single GPU:
+  min:    141.552 ms
+  median: 142.417 ms
+  mean:   145.695 ms
+  max:    161.933 ms
+  std:    6.003 ms
+
+DiffEqGPU pmap (3 GPUs):
+  min:    373.874 ms
+  median: 394.863 ms
+  mean:   425.102 ms
+  max:    761.974 ms
+  std:    106.904 ms
+
+Manual @async (3 GPUs):
+  min:    272.034 ms
+  median: 299.583 ms
+  mean:   304.463 ms
+  max:    344.451 ms
+  std:    18.636 ms
+
+Local problem (3 GPUs):
+  min:    271.21 ms
+  median: 299.569 ms
+  mean:   297.594 ms
+  max:    316.354 ms
+  std:    15.543 ms
+
+------------------------------------------------------------
+SPEEDUP vs Single GPU (using median)
+------------------------------------------------------------
+DiffEqGPU pmap: 0.36x
+Manual @async:  0.48x
+Local problem:  0.48x

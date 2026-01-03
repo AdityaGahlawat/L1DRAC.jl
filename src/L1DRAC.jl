@@ -2,6 +2,9 @@ module L1DRAC
 
 using LinearAlgebra
 using DifferentialEquations
+using DiffEqGPU
+using CUDA 
+using StaticArrays
 using UnPack
 using ProgressLogging
 using TerminalLoggers

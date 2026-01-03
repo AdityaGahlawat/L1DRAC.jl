@@ -80,12 +80,12 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
     #############################################################
     # ADAPTIVE LAW CALLBACK
     integrator = init(L1_problem, EM(), dt=Δₜ)
+    # TRIGGER: Triggers to update Xtilde at t = i*Tₛ, i = floor(t/Tₛ)
     function _adaptive_law_condition(u,t,integrator)  
-        # Triggers to update Xtilde at t = i*Tₛ, i = floor(t/Tₛ)
         current_iₐ = integrator.p[4]
         return floor(t/Tₛ) - current_iₐ ≥ 1 # returns Boolean true or false, becomes true when t moves to a new interval 
     end 
-    # Update the adaptive estimate Λhat when _adaptive_law_condition is true
+    # Update the adaptive estimate Λhat when (TRIGGER == _adaptive_law_condition)S true
     function _adaptive_law_affect!(integrator)
         X = integrator.u[1:n]
         Xhat = integrator.u[n+1:2n]
