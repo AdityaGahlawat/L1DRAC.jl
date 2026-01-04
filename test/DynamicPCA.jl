@@ -27,10 +27,8 @@ function simplependulum_PCA(du, u, p, t)
     du[1] = ω
     du[2] = -(g / L) * sin(θ)
     if (floor(t/p.Tₛ) > floor((t-p.Δₜ)/p.Tₛ) && t ≥ p.Tₛ) == true
-        du[3] = θ/p.Δₜ # dθ_pca 
-        du[4] = ω/p.Δₜ # dω_pca
-        # du[3] = θ # dθ_pca 
-        # du[4] = ω # dω_pca
+        du[3] = (θ - u[3])/p.Δₜ # dθ_pca
+        du[4] = (ω - u[4])/p.Δₜ # dω_pca
         @info "Trigerred at" t
         @info floor(t/p.Tₛ), floor((t-p.Δₜ)/p.Tₛ), t ≥ p.Tₛ
         @info "Tₛ =", p.Tₛ
@@ -45,7 +43,7 @@ function PCA_test()
     Δₜ = 0.01
 
     #Parameters
-    p = (Δₜ, Tₛ = 50*Δₜ)
+    p = (Δₜ, Tₛ = 10*Δₜ)
 
     #Initial Conditions
     u₀ = [0, π / 2, 0.0, 0.0] # [θ, ω, θ_pca, ω_pca]
@@ -56,18 +54,15 @@ function PCA_test()
     sol = ODE.solve(prob, ODE.Euler(), dt = Δₜ)
 
     #Plots
-    p1 = Plots.plot(sol.t, sol[1, :], linewidth = 2, xaxis = "Time", label = L"\theta", dpi = 1000)
-    Plots.plot!(p1, sol.t, sol[3, :], linewidth = 2, xaxis = "Time", label = L"\hat{\theta}", dpi = 1000)
+    p1 = Plots.plot(sol.t, sol[1, :], linewidth = 1, xaxis = "Time", label = L"\theta", dpi = 1000)
+    Plots.plot!(p1, sol.t, sol[3, :], linewidth = 1, color = 1, linestyle = :dot, xaxis = "Time", label = L"\hat{\theta}", dpi = 1000)
 
-    p2 = Plots.plot(sol.t, sol[2, :], linewidth = 2, xaxis = "Time", label = L"\dot{\theta}", dpi = 1000)
-    Plots.plot!(p2, sol.t, sol[4, :], linewidth = 2, xaxis = "Time", label = L"\hat{\dot{\theta}}", dpi = 1000)
+    Plots.plot!(p1, sol.t, sol[2, :], linewidth = 1, color = 2, xaxis = "Time", label = L"\dot{\theta}", dpi = 1000)
+    Plots.plot!(p1, sol.t, sol[4, :], linewidth = 1, color = 2, linestyle = :dot, xaxis = "Time", label = L"\hat{\dot{\theta}}", dpi = 1000)
 
-    return Plots.plot(p1, p2, layout=(2, 1))
+    # return Plots.plot(p1, p2, layout=(2, 1))
+    return p1
 
-
-    #Plot
-    # return Plots.plot(sol.t, sol[1:4, :]', linewidth = 2, title = "Simple Pendulum PCA", xaxis = "Time",
-        # yaxis = "Height", label = [L"\theta" L"\dot{\theta}" L"\hat{\theta}" L"\hat{\dot{\theta}}"], dpi = 1000)
 end
-PCA_test()
-# Plots.savefig(PCA_test(), "PCA_test.png")
+# PCA_test()
+Plots.savefig(PCA_test(), "test/PCA_test.png")
