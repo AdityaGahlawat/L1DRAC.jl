@@ -1,0 +1,66 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+% Theorem environments
+\newtheorem{assumption}{Assumption}
+
+\title{Piecewise Constant Adaptation Law}
+\author{Aditya Gahlawat}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Differential Equation Representation of PCA}
+
+While the piecewise constant adaptation (PCA) law can be implemented using \texttt{discrete callback} in Julia, for GPU parallelization, it is more straightforward to implement it as a dynamical system. 
+For this purpose, given the simulation period $\Delta_t$ and sampling period $T_s = n \cdot T_s > 0$, for some $n \in \mathbb{N}$, we write 
+\begin{equation}\label{eqn:System}
+    d\hat{\Lambda}_t  = f_{ad}\left(t,X_t,\hat{X}_t\right), \quad \hat{\Lambda}_0 = 0_m, 
+\end{equation} 
+where 
+\begin{align*}
+    f_{ad}\left(t,X_t,\hat{X}_t\right) 
+    = 
+    \begin{cases}
+    \left( \frac{\lambda_s}{1 - e^{\lambda_s T_s}} \right) \left( \hat{X}_t - X_t \right), & \text{if } \lfloor t/T_s \rfloor > \lfloor \left(t - \Delta_t \right)/T_s \rfloor~\text{and}~ t \geq T_s , \\
+    0_m & \text{otherwise}
+    \end{cases}.
+\end{align*}
+Now, we use the \texttt{EM()}(\texttt{GPUEM()}) solvers that are based on the Euler-Maruyama method. 
+Since~\eqref{eqn:System} is diffusion-free, the Euler-Maruyama method reduces to the forward Euler method.
+Thus, 
+\begin{align*}
+    \hat{\Lambda}_{(k+1)\Delta_t}  = \hat{\Lambda}_{ k \Delta_t} + \Delta_t f_{ad}\left(k \Delta_t,X_{k \Delta_t},\hat{X}_{k \Delta_t}\right), \quad k \in \mathbb{N}.
+\end{align*}
+Following this, we see that 
+\begin{align*}
+    \hat{\Lambda}_{t} = 0_m, \quad t \in [0,T_s),
+    \\
+    \hat{\Lambda}_{t} = \left( \frac{\lambda_s}{1 - e^{\lambda_s T_s}} \right) \left( \hat{X}_{T_s} - X_{T_s} \right), \quad t \in [T_s, 2T_s),
+    \\
+    \hat{\Lambda}_{t} = \left( \frac{\lambda_s}{1 - e^{\lambda_s T_s}} \right) \left( \hat{X}_{2T_s} - X_{2T_s} \right), \quad t \in [2T_s, 3T_s),
+    \\
+    \vdots
+\end{align*}
+and so on. 
+This way, the PCA adaptation law can be incorporated as a differential equation object compatible with GPU parallelization.
+
+\section{Analysis}
+
+The system above is nothing but a sample-hold of the function $\left( \frac{\lambda_s}{1 - e^{\lambda_s T_s}} \right) \left( \hat{X}_{t} - X_{t} \right)$, sampled at instances $kT_s$, $k \in \mathbb{N}$.
+To illustrate this, we test the dynamic sample-hold using the \href{https://docs.sciml.ai/DiffEqDocs/stable/examples/classical_physics/#Second-Order-Non-linear-ODE}{simple pendulum example}. 
+The code is at \texttt{test/DynamicPCS.jl}.
+
+
+\nocite{placeholder}
+\bibliographystyle{plain}
+\bibliography{TrackingSetupIES}
+
+
+
+\end{document}
