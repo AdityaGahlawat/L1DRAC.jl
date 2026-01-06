@@ -1,0 +1,169 @@
+InvalidIRError: compiling MethodInstance for DiffEqGPU.gpu_em_kernel(::KernelAbstractions.CompilerMetadata{KernelAbstractions.NDIteration.DynamicSize, KernelAbstractions.NDIteration.DynamicCheck, Nothing, CartesianIndices{1, Tuple{Base.OneTo{Int64}}}, KernelAbstractions.NDIteration.NDRange{1, KernelAbstractions.NDIteration.DynamicSize, KernelAbstractions.NDIteration.DynamicSize, CartesianIndices{1, Tuple{Base.OneTo{Int64}}}, CartesianIndices{1, Tuple{Base.OneTo{Int64}}}}}, ::CuDeviceVector{SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), Base.Pairs{Symbol, Union{}, Nothing, @NamedTuple{}}, SMatrix{2, 2, Float32, 4}}, 1}, ::CuDeviceMatrix{SVector{2, Float32}, 1}, ::CuDeviceMatrix{Float32, 1}, ::Float32, ::CuDeviceVector{Float32, 1}, ::Val{true}) resulted in invalid LLVM IR
+Reason: unsupported dynamic function invocation (call to SVector{2, Float32})
+Stacktrace:
+ [1] my_drift
+   @ ~/.julia/dev/L1DRAC/test/NestedFunctionGPU.jl:31
+ [2] SDEFunction
+   @ ~/.julia/packages/SciMLBase/4MHGc/src/scimlfunctions.jl:2686
+ [3] macro expansion
+   @ ~/.julia/packages/DiffEqGPU/JsBHq/src/ensemblegpukernel/perform_step/gpu_em_perform_step.jl:50
+ [4] macro expansion
+   @ ~/.julia/packages/KernelAbstractions/X5fk1/src/macros.jl:332
+ [5] gpu_em_kernel
+   @ ./none:0
+Reason: unsupported dynamic function invocation (call to decay)
+Stacktrace:
+ [1] my_drift
+   @ ~/.julia/dev/L1DRAC/test/NestedFunctionGPU.jl:29
+ [2] SDEFunction
+   @ ~/.julia/packages/SciMLBase/4MHGc/src/scimlfunctions.jl:2686
+ [3] macro expansion
+   @ ~/.julia/packages/DiffEqGPU/JsBHq/src/ensemblegpukernel/perform_step/gpu_em_perform_step.jl:50
+ [4] macro expansion
+   @ ~/.julia/packages/KernelAbstractions/X5fk1/src/macros.jl:332
+ [5] gpu_em_kernel
+   @ ./none:0
+Reason: unsupported dynamic function invocation (call to oscillate)
+Stacktrace:
+ [1] my_drift
+   @ ~/.julia/dev/L1DRAC/test/NestedFunctionGPU.jl:29
+ [2] SDEFunction
+   @ ~/.julia/packages/SciMLBase/4MHGc/src/scimlfunctions.jl:2686
+ [3] macro expansion
+   @ ~/.julia/packages/DiffEqGPU/JsBHq/src/ensemblegpukernel/perform_step/gpu_em_perform_step.jl:50
+ [4] macro expansion
+   @ ~/.julia/packages/KernelAbstractions/X5fk1/src/macros.jl:332
+ [5] gpu_em_kernel
+   @ ./none:0
+Reason: unsupported dynamic function invocation (call to +)
+Stacktrace:
+ [1] my_drift
+   @ ~/.julia/dev/L1DRAC/test/NestedFunctionGPU.jl:29
+ [2] SDEFunction
+   @ ~/.julia/packages/SciMLBase/4MHGc/src/scimlfunctions.jl:2686
+ [3] macro expansion
+   @ ~/.julia/packages/DiffEqGPU/JsBHq/src/ensemblegpukernel/perform_step/gpu_em_perform_step.jl:50
+ [4] macro expansion
+   @ ~/.julia/packages/KernelAbstractions/X5fk1/src/macros.jl:332
+ [5] gpu_em_kernel
+   @ ./none:0
+Reason: unsupported dynamic function invocation (call to decay)
+Stacktrace:
+ [1] my_drift
+   @ ~/.julia/dev/L1DRAC/test/NestedFunctionGPU.jl:30
+ [2] SDEFunction
+   @ ~/.julia/packages/SciMLBase/4MHGc/src/scimlfunctions.jl:2686
+ [3] macro expansion
+   @ ~/.julia/packages/DiffEqGPU/JsBHq/src/ensemblegpukernel/perform_step/gpu_em_perform_step.jl:50
+ [4] macro expansion
+   @ ~/.julia/packages/KernelAbstractions/X5fk1/src/macros.jl:332
+ [5] gpu_em_kernel
+   @ ./none:0
+Reason: unsupported call to an unknown function (call to jl_f_tuple)
+Stacktrace:
+ [1] my_drift
+   @ ~/.julia/dev/L1DRAC/test/NestedFunctionGPU.jl:31
+ [2] SDEFunction
+   @ ~/.julia/packages/SciMLBase/4MHGc/src/scimlfunctions.jl:2686
+ [3] macro expansion
+   @ ~/.julia/packages/DiffEqGPU/JsBHq/src/ensemblegpukernel/perform_step/gpu_em_perform_step.jl:50
+ [4] macro expansion
+   @ ~/.julia/packages/KernelAbstractions/X5fk1/src/macros.jl:332
+ [5] gpu_em_kernel
+   @ ./none:0
+Hint: catch this exception as `err` and call `code_typed(err; interactive = true)` to introspect the erroneous code with Cthulhu.jl
+Stacktrace:
+  [1] check_ir(job::GPUCompiler.CompilerJob{GPUCompiler.PTXCompilerTarget, CUDA.CUDACompilerParams}, args::LLVM.Module)
+    @ GPUCompiler ~/.julia/packages/GPUCompiler/j4HFa/src/validation.jl:167
+  [2] emit_llvm(job::GPUCompiler.CompilerJob; kwargs::@Kwargs{})
+    @ GPUCompiler ~/.julia/packages/GPUCompiler/j4HFa/src/driver.jl:417
+  [3] emit_llvm
+    @ ~/.julia/packages/GPUCompiler/j4HFa/src/driver.jl:182 [inlined]
+  [4] compile_unhooked(output::Symbol, job::GPUCompiler.CompilerJob; kwargs::@Kwargs{})
+    @ GPUCompiler ~/.julia/packages/GPUCompiler/j4HFa/src/driver.jl:95
+  [5] compile_unhooked
+    @ ~/.julia/packages/GPUCompiler/j4HFa/src/driver.jl:80 [inlined]
+  [6] compile(target::Symbol, job::GPUCompiler.CompilerJob; kwargs::@Kwargs{})
+    @ GPUCompiler ~/.julia/packages/GPUCompiler/j4HFa/src/driver.jl:67
+  [7] compile
+    @ ~/.julia/packages/GPUCompiler/j4HFa/src/driver.jl:55 [inlined]
+  [8] #compile##0
+    @ ~/.julia/packages/CUDA/FJf6p/src/compiler/compilation.jl:250 [inlined]
+  [9] JuliaContext(f::CUDA.var"#compile##0#compile##1"{GPUCompiler.CompilerJob{GPUCompiler.PTXCompilerTarget, CUDA.CUDACompilerParams}}; kwargs::@Kwargs{})
+    @ GPUCompiler ~/.julia/packages/GPUCompiler/j4HFa/src/driver.jl:34
+ [10] JuliaContext(f::Function)
+    @ GPUCompiler ~/.julia/packages/GPUCompiler/j4HFa/src/driver.jl:25
+ [11] compile(job::GPUCompiler.CompilerJob)
+    @ CUDA ~/.julia/packages/CUDA/FJf6p/src/compiler/compilation.jl:249
+ [12] actual_compilation(cache::Dict{Any, CuFunction}, src::Core.MethodInstance, world::UInt64, cfg::GPUCompiler.CompilerConfig{GPUCompiler.PTXCompilerTarget, CUDA.CUDACompilerParams}, compiler::typeof(CUDA.compile), linker::typeof(CUDA.link))
+    @ GPUCompiler ~/.julia/packages/GPUCompiler/j4HFa/src/execution.jl:245
+ [13] cached_compilation(cache::Dict{Any, CuFunction}, src::Core.MethodInstance, cfg::GPUCompiler.CompilerConfig{GPUCompiler.PTXCompilerTarget, CUDA.CUDACompilerParams}, compiler::Function, linker::Function)
+    @ GPUCompiler ~/.julia/packages/GPUCompiler/j4HFa/src/execution.jl:159
+ [14] macro expansion
+    @ ~/.julia/packages/CUDA/FJf6p/src/compiler/execution.jl:373 [inlined]
+ [15] macro expansion
+    @ ./lock.jl:376 [inlined]
+ [16] cufunction(f::typeof(DiffEqGPU.gpu_em_kernel), tt::Type{Tuple{KernelAbstractions.CompilerMetadata{KernelAbstractions.NDIteration.DynamicSize, KernelAbstractions.NDIteration.DynamicCheck, Nothing, CartesianIndices{1, Tuple{Base.OneTo{Int64}}}, KernelAbstractions.NDIteration.NDRange{1, KernelAbstractions.NDIteration.DynamicSize, KernelAbstractions.NDIteration.DynamicSize, CartesianIndices{1, Tuple{Base.OneTo{Int64}}}, CartesianIndices{1, Tuple{Base.OneTo{Int64}}}}}, CuDeviceVector{SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), @Kwargs{}, SMatrix{2, 2, Float32, 4}}, 1}, CuDeviceMatrix{SVector{2, Float32}, 1}, CuDeviceMatrix{Float32, 1}, Float32, CuDeviceVector{Float32, 1}, Val{true}}}; kwargs::@Kwargs{always_inline::Bool, maxthreads::Nothing})
+    @ CUDA ~/.julia/packages/CUDA/FJf6p/src/compiler/execution.jl:368
+ [17] macro expansion
+    @ ~/.julia/packages/CUDA/FJf6p/src/compiler/execution.jl:112 [inlined]
+ [18] (::KernelAbstractions.Kernel{CUDABackend, KernelAbstractions.NDIteration.DynamicSize, KernelAbstractions.NDIteration.DynamicSize, typeof(DiffEqGPU.gpu_em_kernel)})(::CuArray{SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), @Kwargs{}, SMatrix{2, 2, Float32, 4}}, 1, CUDA.DeviceMemory}, ::Vararg{Any}; ndrange::Int64, workgroupsize::Nothing)
+    @ CUDA.CUDAKernels ~/.julia/packages/CUDA/FJf6p/src/CUDAKernels.jl:129
+ [19] Kernel
+    @ ~/.julia/packages/CUDA/FJf6p/src/CUDAKernels.jl:115 [inlined]
+ [20] vectorized_solve(probs::CuArray{SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), @Kwargs{}, SMatrix{2, 2, Float32, 4}}, 1, CUDA.DeviceMemory}, prob::SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), @Kwargs{}, SMatrix{2, 2, Float32, 4}}, alg::GPUEM; dt::Float32, saveat::Float32, save_everystep::Bool, debug::Bool, kwargs::@Kwargs{unstable_check::DiffEqGPU.var"#97#98", callback::CallbackSet{Tuple{}, Tuple{}}})
+    @ DiffEqGPU ~/.julia/packages/DiffEqGPU/JsBHq/src/ensemblegpukernel/lowerlevel_solve.jl:160
+ [21] vectorized_solve
+    @ ~/.julia/packages/DiffEqGPU/JsBHq/src/ensemblegpukernel/lowerlevel_solve.jl:102 [inlined]
+ [22] batch_solve_up_kernel(ensembleprob::EnsembleProblem{SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), @Kwargs{}, SMatrix{2, 2, Float32, 4}}, typeof(SciMLBase.DEFAULT_PROB_FUNC), typeof(SciMLBase.DEFAULT_OUTPUT_FUNC), typeof(SciMLBase.DEFAULT_REDUCTION), Nothing}, probs::Vector{SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), @Kwargs{}, SMatrix{2, 2, Float32, 4}}}, alg::GPUEM, ensemblealg::EnsembleGPUKernel{CUDABackend}, I::UnitRange{Int64}, adaptive::Bool; kwargs::@Kwargs{saveat::Float32, unstable_check::DiffEqGPU.var"#97#98", dt::Float32})
+    @ DiffEqGPU ~/.julia/packages/DiffEqGPU/JsBHq/src/solve.jl:288
+ [23] batch_solve(ensembleprob::EnsembleProblem{SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), @Kwargs{}, SMatrix{2, 2, Float32, 4}}, typeof(SciMLBase.DEFAULT_PROB_FUNC), typeof(SciMLBase.DEFAULT_OUTPUT_FUNC), typeof(SciMLBase.DEFAULT_REDUCTION), Nothing}, alg::GPUEM, ensemblealg::EnsembleGPUKernel{CUDABackend}, I::UnitRange{Int64}, adaptive::Bool; kwargs::@Kwargs{unstable_check::DiffEqGPU.var"#97#98", dt::Float32, saveat::Float32})
+    @ DiffEqGPU ~/.julia/packages/DiffEqGPU/JsBHq/src/solve.jl:174
+ [24] macro expansion
+    @ ./timing.jl:461 [inlined]
+ [25] __solve(ensembleprob::EnsembleProblem{SDEProblem{SVector{2, Float32}, Tuple{Float32, Float32}, false, SciMLBase.NullParameters, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(my_drift), typeof(my_diffusion), UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, typeof(my_diffusion), @Kwargs{}, SMatrix{2, 2, Float32, 4}}, typeof(SciMLBase.DEFAULT_PROB_FUNC), typeof(SciMLBase.DEFAULT_OUTPUT_FUNC), typeof(SciMLBase.DEFAULT_REDUCTION), Nothing}, alg::GPUEM, ensemblealg::EnsembleGPUKernel{CUDABackend}; trajectories::Int64, batch_size::Int64, unstable_check::Function, adaptive::Bool, kwargs::@Kwargs{dt::Float32, saveat::Float32})
+    @ DiffEqGPU ~/.julia/packages/DiffEqGPU/JsBHq/src/solve.jl:55
+ [26] __solve
+    @ ~/.julia/packages/DiffEqGPU/JsBHq/src/solve.jl:1 [inlined]
+ [27] #solve#826
+    @ ~/.julia/packages/SciMLBase/4MHGc/src/ensemble/basic_ensemble_solve.jl:359 [inlined]
+ [28] test_nested_calls(; Ntraj::Int64)
+    @ Main ~/.julia/dev/L1DRAC/test/NestedFunctionGPU.jl:50
+ [29] test_nested_calls
+    @ ~/.julia/dev/L1DRAC/test/NestedFunctionGPU.jl:40 [inlined]
+ [30] (::var"#8#9")(io::IOStream)
+    @ Main ./REPL[17]:3
+ [31] open(::var"#8#9", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+    @ Base ./io.jl:410
+ [32] open(::Function, ::String, ::String)
+    @ Base ./io.jl:407
+ [33] top-level scope
+    @ REPL[17]:1
+ [34] __repl_entry_eval_expanded_with_loc(mod::Module, ast::Any, toplevel_file::Ref{Ptr{UInt8}}, toplevel_line::Ref{Int32})
+    @ REPL ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:301
+ [35] toplevel_eval_with_hooks(mod::Module, ast::Any, toplevel_file::Any, toplevel_line::Any)
+    @ REPL ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:308
+ [36] toplevel_eval_with_hooks(mod::Module, ast::Any, toplevel_file::Any, toplevel_line::Any) (repeats 2 times)
+    @ REPL ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:312
+ [37] toplevel_eval_with_hooks
+    @ ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:305 [inlined]
+ [38] eval_user_input(ast::Any, backend::REPL.REPLBackend, mod::Module)
+    @ REPL ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:330
+ [39] repl_backend_loop(backend::REPL.REPLBackend, get_module::Function)
+    @ REPL ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:452
+ [40] start_repl_backend(backend::REPL.REPLBackend, consumer::Any; get_module::Function)
+    @ REPL ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:427
+ [41] start_repl_backend
+    @ ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:424 [inlined]
+ [42] run_repl(repl::REPL.AbstractREPL, consumer::Any; backend_on_current_task::Bool, backend::Any)
+    @ REPL ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:653
+ [43] run_repl(repl::REPL.AbstractREPL, consumer::Any)
+    @ REPL ~/.julia/juliaup/julia-1.12.3+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:639
+ [44] run_std_repl(REPL::Module, quiet::Bool, banner::Symbol, history_file::Bool)
+    @ Base ./client.jl:478
+ [45] run_main_repl(interactive::Bool, quiet::Bool, banner::Symbol, history_file::Bool)
+    @ Base ./client.jl:499
+ [46] repl_main
+    @ ./client.jl:586 [inlined]
+ [47] _start()
+    @ Base ./client.jl:561

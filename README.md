@@ -153,6 +153,9 @@ plotfunc()
 
 ## TODO
 - Parallelize over ML server
+- Multiple GPU 
+    - Test using example from `test/NestedFunctionGPU.jl` 
+    - With 1 GPU,  ran out of memory at `Ntraj=1e8`
 - Move examples to Pluto
 - Control logging with flags (baseline, L1, Total)
     - Baseline Control Function and logging
@@ -160,6 +163,8 @@ plotfunc()
 - L1 sim function to be moved to with the other sim functions (3 methods)
 - ~~Project.toml for examples~~ (not worth it - Julia environments are overly complicated for this use case)
     - ~~Clean up package's Project.toml~~
+- Parallelized plot utilities (multithreading loops/?)
+- Parallelized empirical distributions
 
 ---
 
@@ -190,3 +195,14 @@ max_GPUs = 1
 # Then run ensemble simulation
 ens_nom_sol = system_simulation(params, nominal_system; simtype=:ensemble, backend=:gpu)
 ```
+
+#### 2. Solver backend (`:cpu` `:gpu`)
+ should this not be auto assigned since we have a code that determines GPU/CPU based on user input and available resources?
+
+#### 3. `Warmup` for JIT compilaaion
+
+#### 4. `@CUDA.time()` for GPU solvers, and at the end `GC.gc()` and `CUD.reclaim()` to free up GPU memory. 
+
+
+
+

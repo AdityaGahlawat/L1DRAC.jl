@@ -234,3 +234,10 @@ function validate(constants::AssumptionConstants, sys::TrueSystem)
 
     return true
 end
+
+###################################################################
+# Backend Types
+###################################################################
+
+struct CPU end
+struct GPU end
