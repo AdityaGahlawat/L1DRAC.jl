@@ -158,6 +158,7 @@ plotfunc()
     - With 1 GPU,  ran out of memory at `Ntraj=1e8`
 - Move examples to Pluto
 - Control logging with flags (baseline, L1, Total)
+    - Total control Logging
     - Baseline Control Function and logging
     - L1 control logging
 - L1 sim function to be moved to with the other sim functions (3 methods)

@@ -60,7 +60,7 @@ function _system_simulation(simulation_parameters, nominal_system::NominalSystem
     ensemble_nominal_problem = EnsembleProblem(nominal_problem, prob_func = nominal_prob_func)
 
     @info "Running Ensemble Simulation of Nominal System (GPU)"
-    nominal_sol = solve(ensemble_nominal_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
+    @CUDA.time true_sol nominal_sol = solve(ensemble_nominal_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
                        dt=Float32(Δₜ), trajectories=Ntraj, progress=true, progress_steps=prog_steps,
                        saveat=Float32(Δ_saveat), adaptive=false)
     @info "Done"
@@ -68,56 +68,47 @@ function _system_simulation(simulation_parameters, nominal_system::NominalSystem
 end
 
 # METHOD 2: simulation of true system (GPU)
+# Outer function: dispatches on TrueSystem, bridges runtime dims to compile-time
 function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem, ::GPU)
-	prog_steps = 1000
-	@unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
-	@unpack n, d = getfield(true_system, :sys_dims)
-	@unpack true_ξ₀ = getfield(true_system, :init_dists)
-	true_init = rand(true_ξ₀)
+    # converts n, d to FIXED n_gpu, d_gpu via Val pattern for GPU compatibility
+    @unpack n, d = getfield(true_system, :sys_dims)
+    _system_simulation(simulation_parameters, true_system, Val(n), Val(d))
+end
 
-    # Solve the problem
-    if haskey(kwargs, :simtype) && kwargs[:simtype] == :ensemble
-        backend = get(kwargs, :backend, :cpu)
+# Inner function: dispatches on system type, n_gpu/d_gpu are compile-time constants via `where` clause
+function _system_simulation(simulation_parameters, true_system::TrueSystem, ::Val{n_gpu}, ::Val{d_gpu}) where {n_gpu, d_gpu}
 
-        if backend == :cpu
-            # CPU: in-place functions, EM solver, EnsembleThreads
-            true_problem = SDEProblem(_true_drift!, _true_diffusion!, true_init, tspan,
-                                      noise_rate_prototype = zeros(n, d), (true_system,))
-            solver = EM()
-            ensemble_alg = EnsembleThreads()
-            function true_prob_func_cpu(prob, i, repeat)
-                remake(prob, u0 = rand(true_ξ₀))
-            end
-            ensemble_true_problem = EnsembleProblem(true_problem, prob_func = true_prob_func_cpu)
+    # (n_gpu, d_gpu) = (n, d) as compile-time constants
 
-        elseif backend == :gpu
-            # GPU: out-of-place functions, GPUEM solver, EnsembleGPUKernel, Float32
-            true_problem = SDEProblem(_true_drift_oop, _true_diffusion_oop,
-                                      SVector{n}(Float32.(true_init)...), Float32.(tspan), (true_system,))
-            solver = GPUEM()
-            ensemble_alg = DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend())
-            function true_prob_func_gpu(prob, i, repeat)
-                remake(prob, u0 = SVector{n}(Float32.(rand(true_ξ₀))...))
-            end
-            ensemble_true_problem = EnsembleProblem(true_problem, prob_func = true_prob_func_gpu)
+    prog_steps = 1000
+    @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
+    @unpack true_ξ₀ = getfield(true_system, :init_dists)
+    @unpack f, p, dynamics_params = getfield(true_system, :nom_vec_fields)
+    @unpack Λμ, Λσ = getfield(true_system, :unc_vec_fields)
 
-        else
-            error("Unknown backend: $backend. Supported: :cpu, :gpu")
-        end
+    # Wrappers: true system = nominal + uncertainty
+    drift_gpu(X, dynamics_params, t) = f(t, X, dynamics_params) + Λμ(t, X, dynamics_params)
+    diffusion_gpu(X, dynamics_params, t) = p(t, X, dynamics_params) + Λσ(t, X, dynamics_params)
 
-        @info "Running Ensemble Simulation of True System" backend=backend
-        true_sol = solve(ensemble_true_problem, solver, ensemble_alg, dt=Float32(Δₜ),
-                        trajectories = Ntraj, progress = true, progress_steps = prog_steps,
-                        saveat = Float32(Δ_saveat))
-    else
-        # Single trajectory (CPU only)
-        true_problem = SDEProblem(_true_drift!, _true_diffusion!, true_init, tspan,
-                                  noise_rate_prototype = zeros(n, d), (true_system,))
-        @info "Running Single Trajectory Simulation of True System"
-	    true_sol = solve(true_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
+    # Initial condition with compile-time dimension n_gpu
+    u0 = SVector{n_gpu}(Float32.(rand(true_ξ₀)))
+
+    # SDEProblem: dynamics_params passed as p argument, flows to drift_gpu/diffusion_gpu
+    true_problem = SDEProblem(drift_gpu, diffusion_gpu, u0, Float32.(tspan), dynamics_params,
+                              noise_rate_prototype = SMatrix{n_gpu, d_gpu}(zeros(Float32, n_gpu, d_gpu)))
+
+    # prob_func for ensemble: uses compile-time n_gpu for SVector
+    function true_prob_func(prob, i, repeat)
+        remake(prob, u0 = SVector{n_gpu}(Float32.(rand(true_ξ₀))))
     end
-	@info "Done"
-	return true_sol
+    ensemble_true_problem = EnsembleProblem(true_problem, prob_func = true_prob_func)
+
+    @info "Running Ensemble Simulation of True System (GPU)"
+    @CUDA.time true_sol = solve(ensemble_true_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
+                     dt=Float32(Δₜ), trajectories=Ntraj, progress=true, progress_steps=prog_steps,
+                     saveat=Float32(Δ_saveat), adaptive=false)
+    @info "Done"
+    return true_sol
 end
 
 # METHOD 3: simulation of L1 DRAC system is in src/L1functions.jl
