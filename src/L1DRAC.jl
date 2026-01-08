@@ -15,6 +15,9 @@ using JuMP
 using Ipopt
 using JuMP: MOI
 
+# Types for computation Backends
+export CPU, GPU
+
 # Types for solutions, needed for multiple dispatch plot functions
 export RODESolution 
 export EnsembleSolution
@@ -57,8 +60,10 @@ include("types.jl")
 include("intermediateconstants.jl")
 include("momentfunctions.jl")
 include("boundfunctions.jl")
-include("simfunctions.jl")
-include("L1functions.jl")
+include("simfunctionsCPU.jl")
+include("L1simfunctionsCPU.jl")
+include("simfunctionsGPU.jl")
+include("L1simfunctionsGPU.jl")
 
 function __init__()
     global_logger(TerminalLogger())

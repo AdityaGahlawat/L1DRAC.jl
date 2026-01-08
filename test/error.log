@@ -1,0 +1,86 @@
+CuArray only supports element types that are allocated inline.
+SDEProblem{SVector{7, Float32}, Tuple{Float32, Float32}, false, Tuple{@NamedTuple{A_cl::SMatrix{2, 2, Float64, 4}, B::SMatrix{2, 1, Float64, 2}, K::SMatrix{1, 2, Float64, 2}}, Vararg{Float32, 4}}, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, L1DRAC.var"#drift_L1_gpu#_system_simulation##6"{1, 2, var"#Λμ#11"{var"#Λμ_m#10", var"#Λμ_um#9"}, var"#g_perp#5", var"#g#4", var"#f#3"{var"#trck_traj#2"}}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, Base.Pairs{Symbol, Union{}, Nothing, @NamedTuple{}}, SMatrix{7, 2, Float32, 14}} is a struct that's not allocated inline
+
+Stacktrace:
+  [1] error(s::String)
+    @ Base ./error.jl:44
+  [2] check_eltype
+    @ ~/.julia/packages/CUDA/FJf6p/src/array.jl:67 [inlined]
+  [3] CuArray{SDEProblem{SVector{7, Float32}, Tuple{Float32, Float32}, false, Tuple{@NamedTuple{A_cl::SMatrix{2, 2, Float64, 4}, B::SMatrix{2, 1, Float64, 2}, K::SMatrix{1, 2, Float64, 2}}, Vararg{Float32, 4}}, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, L1DRAC.var"#drift_L1_gpu#_system_simulation##6"{1, 2, var"#Λμ#11"{var"#Λμ_m#10", var"#Λμ_um#9"}, var"#g_perp#5", var"#g#4", var"#f#3"{var"#trck_traj#2"}}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, @Kwargs{}, SMatrix{7, 2, Float32, 14}}, 1, CUDA.DeviceMemory}(::UndefInitializer, dims::Tuple{Int64})
+    @ CUDA ~/.julia/packages/CUDA/FJf6p/src/array.jl:82
+  [4] CuArray
+    @ ~/.julia/packages/CUDA/FJf6p/src/array.jl:437 [inlined]
+  [5] CuArray
+    @ ~/.julia/packages/CUDA/FJf6p/src/array.jl:442 [inlined]
+  [6] CuArray
+    @ ~/.julia/packages/CUDA/FJf6p/src/array.jl:451 [inlined]
+  [7] convert
+    @ ~/.julia/packages/GPUArrays/MuOEX/src/host/construction.jl:4 [inlined]
+  [8] adapt_storage
+    @ ~/.julia/packages/CUDA/FJf6p/src/array.jl:732 [inlined]
+  [9] adapt_structure
+    @ ~/.julia/packages/Adapt/2UZ81/src/Adapt.jl:57 [inlined]
+ [10] adapt
+    @ ~/.julia/packages/Adapt/2UZ81/src/Adapt.jl:40 [inlined]
+ [11] adapt_storage
+    @ ~/.julia/packages/CUDA/FJf6p/src/CUDAKernels.jl:38 [inlined]
+ [12] adapt_structure
+    @ ~/.julia/packages/Adapt/2UZ81/src/Adapt.jl:57 [inlined]
+ [13] adapt
+    @ ~/.julia/packages/Adapt/2UZ81/src/Adapt.jl:40 [inlined]
+ [14] batch_solve_up_kernel(ensembleprob::EnsembleProblem{SDEProblem{SVector{7, Float32}, Tuple{Float32, Float32}, false, Tuple{@NamedTuple{A_cl::SMatrix{2, 2, Float64, 4}, B::SMatrix{2, 1, Float64, 2}, K::SMatrix{1, 2, Float64, 2}}, Vararg{Float32, 4}}, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, L1DRAC.var"#drift_L1_gpu#_system_simulation##6"{1, 2, var"#Λμ#11"{var"#Λμ_m#10", var"#Λμ_um#9"}, var"#g_perp#5", var"#g#4", var"#f#3"{var"#trck_traj#2"}}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, @Kwargs{}, SMatrix{7, 2, Float32, 14}}, L1DRAC.var"#L1_prob_func#_system_simulation##8"{1, 2, DiagNormal}, typeof(SciMLBase.DEFAULT_OUTPUT_FUNC), typeof(SciMLBase.DEFAULT_REDUCTION), Nothing}, probs::Vector{SDEProblem{SVector{7, Float32}, Tuple{Float32, Float32}, false, Tuple{@NamedTuple{A_cl::SMatrix{2, 2, Float64, 4}, B::SMatrix{2, 1, Float64, 2}, K::SMatrix{1, 2, Float64, 2}}, Vararg{Float32, 4}}, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, L1DRAC.var"#drift_L1_gpu#_system_simulation##6"{1, 2, var"#Λμ#11"{var"#Λμ_m#10", var"#Λμ_um#9"}, var"#g_perp#5", var"#g#4", var"#f#3"{var"#trck_traj#2"}}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, @Kwargs{}, SMatrix{7, 2, Float32, 14}}}, alg::DiffEqGPU.GPUEM, ensemblealg::DiffEqGPU.EnsembleGPUKernel{CUDABackend}, I::UnitRange{Int64}, adaptive::Bool; kwargs::@Kwargs{saveat::Float32, unstable_check::DiffEqGPU.var"#97#98", dt::Float32, progress::Bool, progress_steps::Int64})
+    @ DiffEqGPU ~/.julia/packages/DiffEqGPU/JsBHq/src/solve.jl:280
+ [15] batch_solve(ensembleprob::EnsembleProblem{SDEProblem{SVector{7, Float32}, Tuple{Float32, Float32}, false, Tuple{@NamedTuple{A_cl::SMatrix{2, 2, Float64, 4}, B::SMatrix{2, 1, Float64, 2}, K::SMatrix{1, 2, Float64, 2}}, Vararg{Float32, 4}}, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, L1DRAC.var"#drift_L1_gpu#_system_simulation##6"{1, 2, var"#Λμ#11"{var"#Λμ_m#10", var"#Λμ_um#9"}, var"#g_perp#5", var"#g#4", var"#f#3"{var"#trck_traj#2"}}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, @Kwargs{}, SMatrix{7, 2, Float32, 14}}, L1DRAC.var"#L1_prob_func#_system_simulation##8"{1, 2, DiagNormal}, typeof(SciMLBase.DEFAULT_OUTPUT_FUNC), typeof(SciMLBase.DEFAULT_REDUCTION), Nothing}, alg::DiffEqGPU.GPUEM, ensemblealg::DiffEqGPU.EnsembleGPUKernel{CUDABackend}, I::UnitRange{Int64}, adaptive::Bool; kwargs::@Kwargs{unstable_check::DiffEqGPU.var"#97#98", dt::Float32, progress::Bool, progress_steps::Int64, saveat::Float32})
+    @ DiffEqGPU ~/.julia/packages/DiffEqGPU/JsBHq/src/solve.jl:174
+ [16] macro expansion
+    @ ./timing.jl:461 [inlined]
+ [17] __solve(ensembleprob::EnsembleProblem{SDEProblem{SVector{7, Float32}, Tuple{Float32, Float32}, false, Tuple{@NamedTuple{A_cl::SMatrix{2, 2, Float64, 4}, B::SMatrix{2, 1, Float64, 2}, K::SMatrix{1, 2, Float64, 2}}, Vararg{Float32, 4}}, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, L1DRAC.var"#drift_L1_gpu#_system_simulation##6"{1, 2, var"#Λμ#11"{var"#Λμ_m#10", var"#Λμ_um#9"}, var"#g_perp#5", var"#g#4", var"#f#3"{var"#trck_traj#2"}}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, L1DRAC.var"#diffusion_L1_gpu#_system_simulation##7"{2, 1, 2, var"#Λσ#14"{var"#Λσ_m#13"{Float64}, var"#Λσ_um#12"}, var"#p#8"{var"#p_m#7", var"#p_um#6"}}, @Kwargs{}, SMatrix{7, 2, Float32, 14}}, L1DRAC.var"#L1_prob_func#_system_simulation##8"{1, 2, DiagNormal}, typeof(SciMLBase.DEFAULT_OUTPUT_FUNC), typeof(SciMLBase.DEFAULT_REDUCTION), Nothing}, alg::DiffEqGPU.GPUEM, ensemblealg::DiffEqGPU.EnsembleGPUKernel{CUDABackend}; trajectories::Int64, batch_size::Int64, unstable_check::Function, adaptive::Bool, kwargs::@Kwargs{dt::Float32, progress::Bool, progress_steps::Int64, saveat::Float32})
+    @ DiffEqGPU ~/.julia/packages/DiffEqGPU/JsBHq/src/solve.jl:55
+ [18] __solve
+    @ ~/.julia/packages/DiffEqGPU/JsBHq/src/solve.jl:1 [inlined]
+ [19] #solve#826
+    @ ~/.julia/packages/SciMLBase/aHJNB/src/ensemble/basic_ensemble_solve.jl:387 [inlined]
+ [20] macro expansion
+    @ ~/.julia/packages/CUDA/FJf6p/src/utilities.jl:35 [inlined]
+ [21] macro expansion
+    @ ~/.julia/packages/CUDA/FJf6p/src/memory.jl:835 [inlined]
+ [22] _system_simulation(simulation_parameters::L1DRAC.SimParams, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams, ::Val{2}, ::Val{1}, ::Val{2})
+    @ L1DRAC ~/.julia/dev/L1DRAC/src/L1simfunctionsGPU.jl:133
+ [23] system_simulation(simulation_parameters::L1DRAC.SimParams, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams, ::GPU)
+    @ L1DRAC ~/.julia/dev/L1DRAC/src/L1simfunctionsGPU.jl:34
+ [24] (::var"#16#17")(f::IOStream)
+    @ Main ./REPL[9]:1
+ [25] open(::var"#16#17", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+    @ Base ./io.jl:410
+ [26] open(::Function, ::String, ::String)
+    @ Base ./io.jl:407
+ [27] top-level scope
+    @ REPL[9]:1
+ [28] __repl_entry_eval_expanded_with_loc(mod::Module, ast::Any, toplevel_file::Ref{Ptr{UInt8}}, toplevel_line::Ref{Int32})
+    @ REPL ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:301
+ [29] toplevel_eval_with_hooks(mod::Module, ast::Any, toplevel_file::Any, toplevel_line::Any)
+    @ REPL ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:308
+ [30] toplevel_eval_with_hooks(mod::Module, ast::Any, toplevel_file::Any, toplevel_line::Any) (repeats 2 times)
+    @ REPL ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:312
+ [31] toplevel_eval_with_hooks
+    @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:305 [inlined]
+ [32] eval_user_input(ast::Any, backend::REPL.REPLBackend, mod::Module)
+    @ REPL ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:330
+ [33] repl_backend_loop(backend::REPL.REPLBackend, get_module::Function)
+    @ REPL ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:452
+ [34] start_repl_backend(backend::REPL.REPLBackend, consumer::Any; get_module::Function)
+    @ REPL ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:427
+ [35] start_repl_backend
+    @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:424 [inlined]
+ [36] run_repl(repl::REPL.AbstractREPL, consumer::Any; backend_on_current_task::Bool, backend::Any)
+    @ REPL ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:653
+ [37] run_repl(repl::REPL.AbstractREPL, consumer::Any)
+    @ REPL ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/REPL/src/REPL.jl:639
+ [38] run_std_repl(REPL::Module, quiet::Bool, banner::Symbol, history_file::Bool)
+    @ Base ./client.jl:478
+ [39] run_main_repl(interactive::Bool, quiet::Bool, banner::Symbol, history_file::Bool)
+    @ Base ./client.jl:499
+ [40] repl_main
+    @ ./client.jl:586 [inlined]
+ [41] _start()
+    @ Base ./client.jl:561

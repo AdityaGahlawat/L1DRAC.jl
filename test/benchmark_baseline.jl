@@ -1,20 +1,14 @@
 # Benchmark timing for L1DRAC ensemble simulations
 
-using L1DRAC
-using LinearAlgebra
-using Distributions
-using ControlSystemsBase
-using Dates 
-using DataFrames
-using CSV
-using CUDA 
-using Distributed
+
+
+max_GPUs = 1 
 
 
 # max_GPUs: how many GPUs to use (0 = CPU only, default = 1)
 # User can define max_GPUs before running this script to override
 # No wrong answer: code will use min(max_GPUs, available) anyway
-@info "Running GPU Configuration"
+# GPU Configuration
 if !@isdefined(max_GPUs)
     max_GPUs = 1
 end
@@ -55,49 +49,66 @@ else
     @info "CPU only mode" threads=Threads.nthreads()
 end
 
-# include("Setup_DoubleIntegrator1D.jl")
+include("Setup_DoubleIntegrator1D.jl")
 
-# function run_benchmark(; backend=:cpu, Ntraj=100)
-#     # Get system setup
-#     setup = setup_double_integrator()
+function run_benchmark(; Ntraj=10, warmup=true)
+    # Get system setup
+    setup = setup_double_integrator()
 
-#     # Device info
-#     device_type = "threads"
-#     n_devices = Threads.nthreads()
+    # Backend determined by numGPUs (set at top of file)
+    if numGPUs == 0
+        backend = :cpu
+        device_type = "threads"
+        n_devices = Threads.nthreads()
+    else
+        backend = :gpu
+        device_type = "gpu"
+        n_devices = numGPUs
+    end
 
-#     # Create simulation parameters
-#     params = sim_params(setup.tspan, setup.Δₜ, Ntraj, setup.Δ_saveat)
+    # Warmup run (JIT compilation)
+    if warmup
+        @info "Warmup run (Ntraj=2)..."
+        warmup_params = sim_params(setup.tspan, setup.Δₜ, 2, setup.Δ_saveat)
+        system_simulation(warmup_params, setup.nominal_system; simtype=:ensemble, backend=backend)
+        system_simulation(warmup_params, setup.true_system; simtype=:ensemble, backend=backend)
+        system_simulation(warmup_params, setup.true_system, setup.L1params; simtype=:ensemble, backend=backend)
+        @info "Warmup complete"
+    end
 
-#     # Timed runs
-#     @warn "==============================\nTiming runs" backend=backend device_type=device_type n_devices=n_devices Ntraj=Ntraj
-#     t1 = @elapsed system_simulation(params, setup.nominal_system; simtype=:ensemble, backend=backend);
-#     t2 = @elapsed system_simulation(params, setup.true_system; simtype=:ensemble, backend=backend);
-#     t3 = @elapsed system_simulation(params, setup.true_system, setup.L1params; simtype=:ensemble, backend=backend);
+    # Create simulation parameters
+    params = sim_params(setup.tspan, setup.Δₜ, Ntraj, setup.Δ_saveat)
 
-#     # Results
-#     @warn "==============================\nResults" Nominal=t1 True=t2 L1DRAC=t3 Total=t1+t2+t3
+    # Timed runs
+    @warn "==============================\nTiming runs" backend=backend device_type=device_type n_devices=n_devices Ntraj=Ntraj
+    t1 = @elapsed system_simulation(params, setup.nominal_system; simtype=:ensemble, backend=backend);
+    t2 = @elapsed system_simulation(params, setup.true_system; simtype=:ensemble, backend=backend);
+    t3 = @elapsed system_simulation(params, setup.true_system, setup.L1params; simtype=:ensemble, backend=backend);
 
-#     # Log to CSV
-#     logfile = "test/benchmark_log.csv"
-#     row = DataFrame(
-#         timestamp = now(),
-#         backend = string(backend),
-#         device_type = device_type,
-#         n_devices = n_devices,
-#         ntraj = Ntraj,
-#         nominal = round(t1, digits=3),
-#         true_sys = round(t2, digits=3),
-#         l1drac = round(t3, digits=3),
-#         total = round(t1+t2+t3, digits=3)
-#     )
-#     CSV.write(logfile, row, append=isfile(logfile))
-#     @info "Results logged to $logfile"
+    # Results
+    @warn "==============================\nResults" Nominal=t1 True=t2 L1DRAC=t3 Total=t1+t2+t3
 
-#     return (nominal=t1, true_sys=t2, l1drac=t3, total=t1+t2+t3)
-# end
+    # Log to CSV
+    logfile = "test/benchmark_log.csv"
+    row = DataFrame(
+        timestamp = now(),
+        backend = string(backend),
+        device_type = device_type,
+        n_devices = n_devices,
+        ntraj = Ntraj,
+        nominal = round(t1, digits=3),
+        true_sys = round(t2, digits=3),
+        l1drac = round(t3, digits=3),
+        total = round(t1+t2+t3, digits=3)
+    )
+    CSV.write(logfile, row, append=isfile(logfile))
+    @info "Results logged to $logfile"
 
-# # Run benchmark
-# run_benchmark(backend=:cpu, Ntraj=100)
+    return (nominal=t1, true_sys=t2, l1drac=t3, total=t1+t2+t3)
+end
+
+# Run benchmark (uncomment to execute)
+run_benchmark(Ntraj=10)
 
 @info "Removing Workers"
 if nprocs() > 1 # Workers exist
