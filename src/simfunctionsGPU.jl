@@ -60,7 +60,7 @@ function _system_simulation(simulation_parameters, nominal_system::NominalSystem
     ensemble_nominal_problem = EnsembleProblem(nominal_problem, prob_func = nominal_prob_func)
 
     @info "Running Ensemble Simulation of Nominal System (GPU)"
-    @CUDA.time true_sol nominal_sol = solve(ensemble_nominal_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
+    @CUDA.time nominal_sol = solve(ensemble_nominal_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
                        dt=Float32(Δₜ), trajectories=Ntraj, progress=true, progress_steps=prog_steps,
                        saveat=Float32(Δ_saveat), adaptive=false)
     @info "Done"

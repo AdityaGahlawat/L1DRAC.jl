@@ -2,7 +2,7 @@
 
 
 
-max_GPUs = 0
+max_GPUs = 1 
 
 
 # max_GPUs: how many GPUs to use (0 = CPU only, default = 1)
