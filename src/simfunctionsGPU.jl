@@ -26,10 +26,14 @@ Additionally:
 
 # METHOD 1: simulation of nominal system (GPU)
 # Outer function: dispatches on NominalSystem, bridges runtime dims to compile-time
-function system_simulation(simulation_parameters::SimParams, nominal_system::NominalSystem, ::GPU)
+function system_simulation(simulation_parameters::SimParams, nominal_system::NominalSystem, gpu::GPU; kwargs...)
     # converts n, m, d to FIXED n_gpu, d_gpu via Val pattern for GPU compatibility
     @unpack n, d = getfield(nominal_system, :sys_dims)
-    _system_simulation(simulation_parameters, nominal_system, Val(n), Val(d))
+    if gpu.numGPUs == 1
+        _system_simulation(simulation_parameters, nominal_system, Val(n), Val(d))
+    else
+        _system_simulation(simulation_parameters, nominal_system, Val(n), Val(d), gpu.numGPUs)
+    end
 end
 
 # Inner function: dispatches on system type, n_gpu/d_gpu are compile-time constants via `where` clause
@@ -69,10 +73,15 @@ end
 
 # METHOD 2: simulation of true system (GPU)
 # Outer function: dispatches on TrueSystem, bridges runtime dims to compile-time
-function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem, ::GPU)
+function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem, gpu::GPU; kwargs...)
     # converts n, d to FIXED n_gpu, d_gpu via Val pattern for GPU compatibility
     @unpack n, d = getfield(true_system, :sys_dims)
-    _system_simulation(simulation_parameters, true_system, Val(n), Val(d))
+    if gpu.numGPUs == 1
+        _system_simulation(simulation_parameters, true_system, Val(n), Val(d))
+    else
+        @error "TRUE - Multi-GPU ACTIVATED"
+        _system_simulation(simulation_parameters, true_system, Val(n), Val(d), gpu.numGPUs)
+    end
 end
 
 # Inner function: dispatches on system type, n_gpu/d_gpu are compile-time constants via `where` clause

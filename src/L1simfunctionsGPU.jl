@@ -28,7 +28,7 @@ Additionally:
 ##### METHOD 3: L1-DRAC closed-loop simulation (GPU) #####
 
 # Outer function: dispatches on L1DRACParams, bridges runtime dims to compile-time
-function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem, L1params::L1DRACParams, ::GPU)
+function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem, L1params::L1DRACParams, ::GPU; kwargs...)
     # converts n, m, d to FIXED n_gpu, m_gpu, d_gpu via Val pattern for GPU compatibility
     @unpack n, m, d = getfield(true_system, :sys_dims)
     _system_simulation(simulation_parameters, true_system, L1params, Val(n), Val(m), Val(d))
