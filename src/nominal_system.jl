@@ -94,7 +94,56 @@ function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::N
     return nominal_sol
 end
 
-# Inner Private Method 2: Multi-GPU (Val pattern + batch_size distribution)
+# Inner Private Method 2: Multi-GPU (@async approach)
+# NOTE: Returns vector of EnsembleSolutions for now. Step 5 will combine into single EnsembleSolution.
+function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::NominalSystem,
+                                        ::Val{n_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, d_gpu}
+    @unpack Ntraj = simulation_parameters
+
+    ## Weighted trajectory distribution: GPU 0 gets half the load of other GPUs
+    #
+    # Let X = trajectories per "full" GPU (GPUs 1, 2, ...)
+    # GPU 0 does X/2 (reduced capacity due to main process memory overhead)
+    #
+    # Equation for N GPUs:
+    #   X/2 + X + X + ... + X = Ntraj
+    #   X/2 + (N-1)*X         = Ntraj
+    #   X * (0.5 + N - 1)     = Ntraj
+    #   X = Ntraj / (N - 0.5)
+    #
+    # Example: 3 GPUs, 100 trajectories
+    #   X = 100 / 2.5 = 40
+    #   GPU 0: 20, GPU 1: 40, GPU 2: 40
+    #
+    other_traj = ceil(Int, Ntraj / (numGPUs - 0.5))  # X
+    gpu0_traj = other_traj ÷ 2                        # X/2
+
+    solutions = Vector{Any}(undef, numGPUs)
+
+    # Assigning each GPU to a batch of trajectories
+    @sync begin
+        for gpu_id in 0:(numGPUs-1)
+            @async begin
+                CUDA.device!(gpu_id)
+                gpu_traj = (gpu_id == 0) ? gpu0_traj : other_traj
+
+                @info "GPU $gpu_id: solving $gpu_traj trajectories"
+                gpu_params = sim_params(simulation_parameters.tspan,
+                                        simulation_parameters.Δₜ,
+                                        gpu_traj,
+                                        simulation_parameters.Δ_saveat)
+                solutions[gpu_id + 1] = _system_simulation_nominal_gpu(gpu_params, nominal_system,
+                                                                       Val(n_gpu), Val(d_gpu))
+            end
+        end
+    end
+
+    # TODO Step 5: Combine into single EnsembleSolution
+    @info "Returning vector of $(numGPUs) EnsembleSolutions (combine in Step 5)"
+    return solutions
+end
+
+#= OLD Distributed.jl Multi-GPU Method (commented out - see v1.1.0-GPU-parallel-PMAP)
 function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::NominalSystem, ::Val{n_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, d_gpu}
 
     prog_steps = 1000
@@ -124,3 +173,4 @@ function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::N
     @info "Done"
     return nominal_sol
 end
+=#
