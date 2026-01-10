@@ -43,6 +43,12 @@ L1DRAC/
 ├── examples/
 │   └── ex1/
 ├── src/              # Main package source
+│   ├── L1DRAC.jl           # Main module
+│   ├── types.jl            # Type definitions
+│   ├── gpu_setup.jl        # Backend & GPU worker setup/cleanup functions 
+│   ├── nominal_system.jl   # NominalSystem simulation (CPU + GPU)
+│   ├── true_system.jl      # TrueSystem simulation (CPU + GPU)
+│   └── L1_system.jl        # L1-DRAC simulation (CPU + GPU)
 ├── test/             # Tests and benchmarks
 ├── Writeups/         # Documentation and derivations
 ├── LICENSE
