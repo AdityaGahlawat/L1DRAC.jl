@@ -14,7 +14,7 @@ using UnPack
 using StochasticDiffEq
 using DiffEqGPU
 
-include("Setup_DoubleIntegrator1D.jl")
+# include("Setup_DoubleIntegrator1D.jl")
 
 function computation_benchmark_setup(;max_GPUs = 0, Ntraj = 10)
 
@@ -52,13 +52,14 @@ function computation_benchmark_setup(;max_GPUs = 0, Ntraj = 10)
                 CUDA.device!(i - 1)
             end
         end
-        @everywhere @eval using DiffEqGPU, StochasticDiffEq, StaticArrays
+        @everywhere @eval using DiffEqGPU, StochasticDiffEq, StaticArrays, L1DRAC
         @info "Multi-GPU mode" devices=join(["CuDevice($i): $(CUDA.name(CUDA.CuDevice(i)))" for i in 0:(numGPUs-1)], ", ")
     elseif numGPUs == 1
         @info "Single GPU mode" device="CuDevice(0): $(CUDA.name(CUDA.CuDevice(0)))"
     else
         @info "CPU only mode" threads=Threads.nthreads()
     end
+    @everywhere @eval include(joinpath($(@__DIR__), "Setup_DoubleIntegrator1D.jl"))
 
     
 

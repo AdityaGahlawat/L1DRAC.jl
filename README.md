@@ -38,11 +38,13 @@ julia> ] add https://github.com/AdityaGahlawat/L1DRAC.jl
 
 ```
 L1DRAC/
+├── Airlock/          # Work-in-progress code (not yet integrated)
+├── Archive/          # Deprecated/old code for reference
 ├── examples/
 │   └── ex1/
-├── src/
-├── test/
-├── Writeups/
+├── src/              # Main package source
+├── test/             # Tests and benchmarks
+├── Writeups/         # Documentation and derivations
 ├── LICENSE
 ├── Manifest.toml
 ├── Project.toml

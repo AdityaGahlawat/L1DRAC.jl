@@ -24,6 +24,7 @@ Additionally:
 
 ##### MAIN SIMULATION FUNCTION (Multiple Dispatch) #####
 
+
 # METHOD 1: simulation of nominal system (GPU)
 # Outer function: dispatches on NominalSystem, bridges runtime dims to compile-time
 function system_simulation(simulation_parameters::SimParams, nominal_system::NominalSystem, gpu::GPU; kwargs...)
@@ -71,6 +72,38 @@ function _system_simulation(simulation_parameters, nominal_system::NominalSystem
     return nominal_sol
 end
 
+# Inner function for Nominal MULTI-GPU: same as above but with batch_size for distributing across GPUs
+function _system_simulation(simulation_parameters, nominal_system::NominalSystem, ::Val{n_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, d_gpu}
+
+    prog_steps = 1000
+    @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
+    @unpack nominal_ξ₀ = getfield(nominal_system, :init_dists)
+    @unpack f, p, dynamics_params = getfield(nominal_system, :nom_vec_fields)
+
+    drift_gpu(X, dynamics_params, t) = f(t, X, dynamics_params)
+    diffusion_gpu(X, dynamics_params, t) = p(t, X, dynamics_params)
+
+    u0 = SVector{n_gpu}(Float32.(rand(nominal_ξ₀)))
+
+    nominal_problem = SDEProblem(drift_gpu, diffusion_gpu, u0, Float32.(tspan), dynamics_params,
+                                 noise_rate_prototype = SMatrix{n_gpu, d_gpu}(zeros(Float32, n_gpu, d_gpu)))
+
+    function nominal_prob_func(prob, i, repeat)
+        remake(prob, u0 = SVector{n_gpu}(Float32.(rand(nominal_ξ₀))))
+    end
+    ensemble_nominal_problem = EnsembleProblem(nominal_problem, prob_func = nominal_prob_func)
+
+    batch_size = cld(Ntraj, numGPUs)
+    @info "Running Ensemble Simulation of Nominal System on $numGPUs GPUs with batch size of $batch_size per GPU" 
+    batch_size=batch_size
+    nominal_sol = solve(ensemble_nominal_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
+                       dt=Float32(Δₜ), trajectories=Ntraj, batch_size=batch_size,
+                       progress=true, progress_steps=prog_steps,
+                       saveat=Float32(Δ_saveat), adaptive=false)
+    @info "Done"
+    return nominal_sol
+end
+
 # METHOD 2: simulation of true system (GPU)
 # Outer function: dispatches on TrueSystem, bridges runtime dims to compile-time
 function system_simulation(simulation_parameters::SimParams, true_system::TrueSystem, gpu::GPU; kwargs...)
@@ -79,7 +112,6 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
     if gpu.numGPUs == 1
         _system_simulation(simulation_parameters, true_system, Val(n), Val(d))
     else
-        @error "TRUE - Multi-GPU ACTIVATED"
         _system_simulation(simulation_parameters, true_system, Val(n), Val(d), gpu.numGPUs)
     end
 end
@@ -115,6 +147,39 @@ function _system_simulation(simulation_parameters, true_system::TrueSystem, ::Va
     @info "Running Ensemble Simulation of True System (GPU)"
     @CUDA.time true_sol = solve(ensemble_true_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
                      dt=Float32(Δₜ), trajectories=Ntraj, progress=true, progress_steps=prog_steps,
+                     saveat=Float32(Δ_saveat), adaptive=false)
+    @info "Done"
+    return true_sol
+end
+
+# Inner function for TrueSystem MULTI-GPU: same as above but with batch_size for distributing across GPUs
+function _system_simulation(simulation_parameters, true_system::TrueSystem, ::Val{n_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, d_gpu}
+
+    prog_steps = 1000
+    @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
+    @unpack true_ξ₀ = getfield(true_system, :init_dists)
+    @unpack f, p, dynamics_params = getfield(true_system, :nom_vec_fields)
+    @unpack Λμ, Λσ = getfield(true_system, :unc_vec_fields)
+
+    # Wrappers: true system = nominal + uncertainty
+    drift_gpu(X, dynamics_params, t) = f(t, X, dynamics_params) + Λμ(t, X, dynamics_params)
+    diffusion_gpu(X, dynamics_params, t) = p(t, X, dynamics_params) + Λσ(t, X, dynamics_params)
+
+    u0 = SVector{n_gpu}(Float32.(rand(true_ξ₀)))
+
+    true_problem = SDEProblem(drift_gpu, diffusion_gpu, u0, Float32.(tspan), dynamics_params,
+                              noise_rate_prototype = SMatrix{n_gpu, d_gpu}(zeros(Float32, n_gpu, d_gpu)))
+
+    function true_prob_func(prob, i, repeat)
+        remake(prob, u0 = SVector{n_gpu}(Float32.(rand(true_ξ₀))))
+    end
+    ensemble_true_problem = EnsembleProblem(true_problem, prob_func = true_prob_func)
+
+    batch_size = cld(Ntraj, numGPUs)
+    @info "Running Ensemble Simulation of True System on $numGPUs GPUs with batch size of $batch_size per GPU"
+    true_sol = solve(ensemble_true_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
+                     dt=Float32(Δₜ), trajectories=Ntraj, batch_size=batch_size,
+                     progress=true, progress_steps=prog_steps,
                      saveat=Float32(Δ_saveat), adaptive=false)
     @info "Done"
     return true_sol
