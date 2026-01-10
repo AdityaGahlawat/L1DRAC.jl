@@ -14,9 +14,13 @@ using OptimalTransport
 using JuMP
 using Ipopt
 using JuMP: MOI
+using Distributed
 
 # Types for computation Backends
 export CPU, GPU
+
+# GPU setup functions
+export setup_gpu_workers, assign_gpus_to_workers, cleanup_gpu_environment, get_backend
 
 # Types for solutions, needed for multiple dispatch plot functions
 export RODESolution 
@@ -38,32 +42,11 @@ export assumption_constants
 export validate
 export Delta_star_Linear_Nominal
 
-# Intermediate constants exports
-export intermediate_constants
-export IntermediateConstants
-export ReferenceProcessConstants, TrueProcessConstants
-export DeltaHatRef, DeltaCircRef, DeltaCircledCircRef, DeltaOdotRef, DeltaOtimesRef, DeltaCircledAstRef
-export DeltaHatTrue, DeltaCircledCircTrue, DeltaOdotTrue, DeltaOtimesTrue, DeltaCircledAstTrue
-export frakp, frakp_prime, frakp_double_prime, Lip_f
-
-# Bound functions exports
-export alpha_zero
-export Gamma_r, Gamma_a, Gamma_r_inf, Gamma_a_inf
-export Theta_r, Theta_a
-export optimal_bounds, bounds_sweep
-export rho_r_condition, rho_a_condition, rho_r_condition_inf, rho_a_condition_inf
-export bandwidth_condition_r, bandwidth_condition_a
-export Gamma_r_breakdown, Gamma_a_breakdown, summarize_intermediate_constants
-
-
 include("types.jl")
-include("intermediateconstants.jl")
-include("momentfunctions.jl")
-include("boundfunctions.jl")
-include("simfunctionsCPU.jl")
-include("L1simfunctionsCPU.jl")
-include("simfunctionsGPU.jl")
-include("L1simfunctionsGPU.jl")
+include("gpu_setup.jl")
+include("nominal_system.jl")
+include("true_system.jl")
+include("L1_system.jl")
 
 function __init__()
     global_logger(TerminalLogger())

@@ -238,8 +238,10 @@ function validate(constants::AssumptionConstants, sys::TrueSystem)
 end
 
 ###################################################################
-# Backend Types
+# Computation Backend Types
 ###################################################################
-
 struct CPU end
-struct GPU end
+struct GPU
+    numGPUs::Int
+end
+GPU() = GPU(1) # default to single GPU

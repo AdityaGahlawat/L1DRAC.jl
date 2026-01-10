@@ -10,7 +10,7 @@
 # In-place versions (CPU)
 function _L1_drift!(dZ, Z, (true_system, L1params, Δₜ), t)
     @unpack n, m = getfield(true_system, :sys_dims)
-    @unpack f, g, g_perp = getfield(true_system, :nom_vec_fields)
+    @unpack f, g, g_perp, dynamics_params = getfield(true_system, :nom_vec_fields)
     @unpack Λμ = getfield(true_system, :unc_vec_fields)
     @unpack ω, Tₛ, λₛ = L1params
 
@@ -20,14 +20,14 @@ function _L1_drift!(dZ, Z, (true_system, L1params, Δₜ), t)
     Λhat = Z[2n+m+1:3n+m]
 
     # Controller
-    gbar_t = hcat(g(t), g_perp(t))
+    gbar_t = hcat(g(t, X, dynamics_params), g_perp(t, X, dynamics_params))
     Θ_t = hcat(I(m), zeros(m, n-m)) * inv(gbar_t)
     Λhat_m = Θ_t * Λhat
     uₐ = m == 1 ? -only(Xfilter) : -Xfilter
 
     dXfilter = -ω*Xfilter + ω*Λhat_m
-    dXhat = -λₛ*(Xhat - X) + f(t, X) + g(t)*uₐ + Λhat
-    dX = f(t, X) + g(t)*uₐ + Λμ(t, X)
+    dXhat = -λₛ*(Xhat - X) + f(t, X, dynamics_params) + g(t, X, dynamics_params)*uₐ + Λhat
+    dX = f(t, X, dynamics_params) + g(t, X, dynamics_params)*uₐ + Λμ(t, X, dynamics_params)
 
     # Sample-and-hold for Λhat
     is_crossover = (floor(t/Tₛ) > floor((t - Δₜ)/Tₛ)) && (t >= Tₛ)
@@ -46,11 +46,11 @@ end
 
 function _L1_diffusion!(dZ, Z, (true_system, L1params, Δₜ), t)
     @unpack n, m, d = getfield(true_system, :sys_dims)
-    @unpack p = getfield(true_system, :nom_vec_fields)
+    @unpack p, dynamics_params = getfield(true_system, :nom_vec_fields)
     @unpack Λσ = getfield(true_system, :unc_vec_fields)
 
     X = Z[1:n]
-    dX = p(t, X) + Λσ(t, X)
+    dX = p(t, X, dynamics_params) + Λσ(t, X, dynamics_params)
 
     for j in 1:d
         dZ[1:n, j] = dX[:, j]
@@ -84,7 +84,7 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
                 remake(prob, u0 = vcat(rand_init, rand_init, zeros(m), zeros(n)))
             end
             ensemble_L1_problem = EnsembleProblem(L1_problem, prob_func = L1_prob_func_cpu)
-            @info "Running Ensemble Simulation of L1 System" backend=backend
+            @info "Running Ensemble Simulation of L1 System (CPU)" 
             L1_sol = solve(ensemble_L1_problem, solver, ensemble_alg, dt=Δₜ,
                           trajectories = Ntraj, progress = true, progress_steps = prog_steps,
                           saveat = Δ_saveat)

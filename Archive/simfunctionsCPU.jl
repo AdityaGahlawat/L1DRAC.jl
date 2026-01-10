@@ -8,45 +8,47 @@
 # Drift Functions
 function _nominal_drift!(dX, X, (nominal_system, ), t)
 	@unpack n = getfield(nominal_system, :sys_dims)
-	@unpack f = getfield(nominal_system, :nom_vec_fields)
-	dX[1:n] = f(t,X)[1:n]
+	@unpack f, dynamics_params = getfield(nominal_system, :nom_vec_fields)
+	dX[1:n] = f(t, X, dynamics_params)[1:n]
 end
 function _uncertain_drift!(dX, X, (true_system, ), t)
 	@unpack n = getfield(true_system, :sys_dims)
 	@unpack Λμ = getfield(true_system, :unc_vec_fields)
-	dX[1:n] = Λμ(t,X)[1:n]
+	@unpack dynamics_params = getfield(true_system, :nom_vec_fields)
+	dX[1:n] = Λμ(t, X, dynamics_params)[1:n]
 end
 function _true_drift!(dX, X, (true_system, ), t)
 	@unpack n = getfield(true_system, :sys_dims)
-	@unpack f = getfield(true_system, :nom_vec_fields)
+	@unpack f, dynamics_params = getfield(true_system, :nom_vec_fields)
 	@unpack Λμ = getfield(true_system, :unc_vec_fields)
-	Fμ(t, X) = f(t,X) + Λμ(t,X)
+	Fμ(t, X) = f(t, X, dynamics_params) + Λμ(t, X, dynamics_params)
 	dX[1:n] = Fμ(t,X)[1:n]
 end
 # Diffusion Functions
 function _nominal_diffusion!(dX, X, (nominal_system, ), t)
 	@unpack n, d = getfield(nominal_system, :sys_dims)
-	@unpack p = getfield(nominal_system, :nom_vec_fields)
+	@unpack p, dynamics_params = getfield(nominal_system, :nom_vec_fields)
 	for i in 1:n
 		for j in 1:d
-			dX[i,j] = p(t,X)[i,j]
+			dX[i,j] = p(t, X, dynamics_params)[i,j]
 		end
 	end
 end
 function _uncertain_diffusion!(dX, X, (true_system, ), t)
 	@unpack n, d = getfield(true_system, :sys_dims)
 	@unpack Λσ = getfield(true_system, :unc_vec_fields)
+	@unpack dynamics_params = getfield(true_system, :nom_vec_fields)
 	for i in 1:n
 		for j in 1:d
-			dX[i,j] = Λσ(t,X)[i,j]
+			dX[i,j] = Λσ(t, X, dynamics_params)[i,j]
 		end
 	end
 end
 function _true_diffusion!(dX, X, (true_system, ), t)
 	@unpack n, d = getfield(true_system, :sys_dims)
-	@unpack p = getfield(true_system, :nom_vec_fields)
+	@unpack p, dynamics_params = getfield(true_system, :nom_vec_fields)
 	@unpack Λσ = getfield(true_system, :unc_vec_fields)
-	Fσ(t, X) = p(t,X) + Λσ(t,X)
+	Fσ(t, X) = p(t, X, dynamics_params) + Λσ(t, X, dynamics_params)
 	for i in 1:n
 		for j in 1:d
 			dX[i,j] = Fσ(t, X)[i,j]
