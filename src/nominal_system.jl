@@ -50,7 +50,7 @@ function system_simulation(simulation_parameters::SimParams, nominal_system::Nom
         nominal_sol = solve(nominal_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     end
     @info "Done"
-    return nominal_sol
+    return [nominal_sol]
 end
 
 # Method 2: GPU - dispatches to inner private methods for single/multi GPU
@@ -65,13 +65,11 @@ end
 
 ##### INNER PRIVATE METHODS (GPU) #####
 
-# Inner Private Method 1: Single GPU (Val pattern for compile-time dimensions)
-function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::NominalSystem, ::Val{n_gpu}, ::Val{d_gpu}) where {n_gpu, d_gpu}
-
+# Helper function: Core GPU solve kernel (called by both single-GPU and multi-GPU methods)
+# Returns raw EnsembleSolution (not wrapped in array)
+function _nominal_gpu_solve_kernel(tspan, Δₜ, Ntraj, Δ_saveat, nominal_ξ₀, f, p, dynamics_params,
+                                   ::Val{n_gpu}, ::Val{d_gpu}) where {n_gpu, d_gpu}
     prog_steps = 1000
-    @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
-    @unpack nominal_ξ₀ = getfield(nominal_system, :init_dists)
-    @unpack f, p, dynamics_params = getfield(nominal_system, :nom_vec_fields)
 
     drift_gpu(X, dynamics_params, t) = f(t, X, dynamics_params)
     diffusion_gpu(X, dynamics_params, t) = p(t, X, dynamics_params)
@@ -86,19 +84,33 @@ function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::N
     end
     ensemble_nominal_problem = EnsembleProblem(nominal_problem, prob_func = nominal_prob_func)
 
-    @info "Running Ensemble Simulation of Nominal System (GPU)"
-    @CUDA.time nominal_sol = solve(ensemble_nominal_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
+    nominal_sol = solve(ensemble_nominal_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
                        dt=Float32(Δₜ), trajectories=Ntraj, progress=true, progress_steps=prog_steps,
                        saveat=Float32(Δ_saveat), adaptive=false)
-    @info "Done"
+
     return nominal_sol
 end
 
-# Inner Private Method 2: Multi-GPU (@async approach)
-# NOTE: Returns vector of EnsembleSolutions for now. Step 5 will combine into single EnsembleSolution.
+# Inner Private Method 1: Single GPU - calls _nominal_gpu_solve_kernel
+function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::NominalSystem, ::Val{n_gpu}, ::Val{d_gpu}) where {n_gpu, d_gpu}
+    @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
+    @unpack nominal_ξ₀ = getfield(nominal_system, :init_dists)
+    @unpack f, p, dynamics_params = getfield(nominal_system, :nom_vec_fields)
+
+    @info "Running Ensemble Simulation of Nominal System (GPU)"
+    @CUDA.time nominal_sol = _nominal_gpu_solve_kernel(tspan, Δₜ, Ntraj, Δ_saveat, nominal_ξ₀, f, p, dynamics_params,
+                                                       Val(n_gpu), Val(d_gpu))
+    @info "Done"
+    return [nominal_sol]
+end
+
+# Inner Private Method 2: Multi-GPU - calls _nominal_gpu_solve_kernel in each @async
+# Returns Vector{EnsembleSolution} (one per GPU)
 function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::NominalSystem,
                                         ::Val{n_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, d_gpu}
-    @unpack Ntraj = simulation_parameters
+    @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
+    @unpack nominal_ξ₀ = getfield(nominal_system, :init_dists)
+    @unpack f, p, dynamics_params = getfield(nominal_system, :nom_vec_fields)
 
     ## Weighted trajectory distribution: GPU 0 gets half the load of other GPUs
     #
@@ -120,26 +132,22 @@ function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::N
 
     solutions = Vector{Any}(undef, numGPUs)
 
-    # Assigning each GPU to a batch of trajectories
     @sync begin
         for gpu_id in 0:(numGPUs-1)
             @async begin
                 CUDA.device!(gpu_id)
                 gpu_traj = (gpu_id == 0) ? gpu0_traj : other_traj
-
                 @info "GPU $gpu_id: solving $gpu_traj trajectories"
-                gpu_params = sim_params(simulation_parameters.tspan,
-                                        simulation_parameters.Δₜ,
-                                        gpu_traj,
-                                        simulation_parameters.Δ_saveat)
-                solutions[gpu_id + 1] = _system_simulation_nominal_gpu(gpu_params, nominal_system,
-                                                                       Val(n_gpu), Val(d_gpu))
+
+                # Calls helper with DIFFERENT function name - clear call graph
+                gpu_sol = _nominal_gpu_solve_kernel(tspan, Δₜ, gpu_traj, Δ_saveat, nominal_ξ₀, f, p, dynamics_params,
+                                                    Val(n_gpu), Val(d_gpu))
+                solutions[gpu_id + 1] = gpu_sol
             end
         end
     end
 
-    # TODO Step 5: Combine into single EnsembleSolution
-    @info "Returning vector of $(numGPUs) EnsembleSolutions (combine in Step 5)"
+    @info "Multi-GPU complete" num_solutions=numGPUs trajectories_per_gpu=length.(solutions)
     return solutions
 end
 

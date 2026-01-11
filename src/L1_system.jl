@@ -97,7 +97,7 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
                       saveat = Δ_saveat)
     end
     @info "Done"
-    return L1_sol
+    return [L1_sol]
 end
 
 # Method 2: GPU - dispatches to inner private methods for single/multi GPU
@@ -112,16 +112,13 @@ end
 
 ##### INNER PRIVATE METHODS (GPU) #####
 
-# Inner Private Method 1: Single GPU (Val pattern for compile-time dimensions)
-function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSystem, L1params::L1DRACParams,
-                                   ::Val{n_gpu}, ::Val{m_gpu}, ::Val{d_gpu}) where {n_gpu, m_gpu, d_gpu}
-
+# Helper function: Core GPU solve kernel (called by both single-GPU and multi-GPU methods)
+# Returns raw EnsembleSolution (not wrapped in array)
+function _L1_gpu_solve_kernel(tspan, Δₜ, Ntraj, Δ_saveat, true_ξ₀,
+                               f, g, g_perp, p, Λμ, Λσ, dynamics_params,
+                               ω, Tₛ, λₛ,
+                               ::Val{n_gpu}, ::Val{m_gpu}, ::Val{d_gpu}) where {n_gpu, m_gpu, d_gpu}
     prog_steps = 1000
-    @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
-    @unpack true_ξ₀ = getfield(true_system, :init_dists)
-    @unpack f, g, g_perp, p, dynamics_params = getfield(true_system, :nom_vec_fields)
-    @unpack Λμ, Λσ = getfield(true_system, :unc_vec_fields)
-    @unpack ω, Tₛ, λₛ = L1params
 
     # Build params tuple for SDEProblem (only isbits data, Float32 for GPU)
     L1_params_tuple = (dynamics_params, Float32(ω), Float32(Tₛ), Float32(λₛ), Float32(Δₜ))
@@ -193,93 +190,78 @@ function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSyste
     end
     ensemble_L1_problem = EnsembleProblem(L1_problem, prob_func = L1_prob_func)
 
-    @info "Running Ensemble Simulation of L1-DRAC System (GPU)"
-    @CUDA.time L1_sol = solve(ensemble_L1_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
-                              dt=Float32(Δₜ), trajectories=Ntraj, progress=true, progress_steps=prog_steps,
-                              saveat=Float32(Δ_saveat), adaptive=false)
-    @info "Done"
+    L1_sol = solve(ensemble_L1_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
+                   dt=Float32(Δₜ), trajectories=Ntraj, progress=true, progress_steps=prog_steps,
+                   saveat=Float32(Δ_saveat), adaptive=false)
+
     return L1_sol
 end
 
-# Inner Private Method 2: Multi-GPU (Val pattern + batch_size distribution)
+# Inner Private Method 1: Single GPU - calls _L1_gpu_solve_kernel
 function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSystem, L1params::L1DRACParams,
-                                   ::Val{n_gpu}, ::Val{m_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, m_gpu, d_gpu}
-
-    prog_steps = 1000
+                                   ::Val{n_gpu}, ::Val{m_gpu}, ::Val{d_gpu}) where {n_gpu, m_gpu, d_gpu}
     @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
     @unpack true_ξ₀ = getfield(true_system, :init_dists)
     @unpack f, g, g_perp, p, dynamics_params = getfield(true_system, :nom_vec_fields)
     @unpack Λμ, Λσ = getfield(true_system, :unc_vec_fields)
     @unpack ω, Tₛ, λₛ = L1params
 
-    L1_params_tuple = (dynamics_params, Float32(ω), Float32(Tₛ), Float32(λₛ), Float32(Δₜ))
-
-    function drift_L1_gpu(Z, params, t)
-        dynamics_params_gpu, ω_gpu, Tₛ_gpu, λₛ_gpu, Δₜ_gpu = params
-
-        X = Z[SOneTo(n_gpu)]
-        Xhat = Z[StaticArrays.SUnitRange(n_gpu+1, 2n_gpu)]
-        Xfilter = Z[StaticArrays.SUnitRange(2n_gpu+1, 2n_gpu+m_gpu)]
-        Λhat = Z[StaticArrays.SUnitRange(2n_gpu+m_gpu+1, 3n_gpu+m_gpu)]
-
-        gbar_t = hcat(g(t, X, dynamics_params_gpu), g_perp(t, X, dynamics_params_gpu))
-        Θ_t = hcat(SMatrix{m_gpu, m_gpu}(I), @SMatrix(zeros(eltype(Z), m_gpu, n_gpu-m_gpu))) * inv(gbar_t)
-        Λhat_m = Θ_t * Λhat
-        uₐ = m_gpu == 1 ? -only(Xfilter) : -Xfilter
-
-        dXfilter = -ω_gpu * Xfilter + ω_gpu * Λhat_m
-        dXhat = -λₛ_gpu * (Xhat - X) + f(t, X, dynamics_params_gpu) + g(t, X, dynamics_params_gpu) * uₐ + Λhat
-        dX = f(t, X, dynamics_params_gpu) + g(t, X, dynamics_params_gpu) * uₐ + Λμ(t, X, dynamics_params_gpu)
-
-        is_crossover = (floor(t / Tₛ_gpu) > floor((t - Δₜ_gpu) / Tₛ_gpu)) && (t >= Tₛ_gpu)
-        if is_crossover
-            Λhat_new = (λₛ_gpu / (1 - exp(λₛ_gpu * Tₛ_gpu))) * (Xhat - X)
-            dΛhat = (Λhat_new - Λhat) / Δₜ_gpu
-        else
-            dΛhat = zero(Λhat)
-        end
-
-        return vcat(dX, dXhat, dXfilter, dΛhat)
-    end
-
-    function diffusion_L1_gpu(Z, params, t)
-        dynamics_params_gpu = params[1]
-        X = Z[SOneTo(n_gpu)]
-
-        dX_noise = SMatrix{n_gpu, d_gpu}(p(t, X, dynamics_params_gpu) + Λσ(t, X, dynamics_params_gpu))
-
-        return vcat(dX_noise,
-                    @SMatrix(zeros(eltype(Z), n_gpu, d_gpu)),
-                    @SMatrix(zeros(eltype(Z), m_gpu, d_gpu)),
-                    @SMatrix(zeros(eltype(Z), n_gpu, d_gpu)))
-    end
-
-    true_init = rand(true_ξ₀)
-    u0 = vcat(SVector{n_gpu}(Float32.(true_init)),
-              SVector{n_gpu}(Float32.(true_init)),
-              SVector{m_gpu}(zeros(Float32, m_gpu)),
-              SVector{n_gpu}(zeros(Float32, n_gpu)))
-
-    total_state_size = 3 * n_gpu + m_gpu
-
-    L1_problem = SDEProblem(drift_L1_gpu, diffusion_L1_gpu, u0, Float32.(tspan), L1_params_tuple,
-                            noise_rate_prototype = SMatrix{total_state_size, d_gpu}(zeros(Float32, total_state_size, d_gpu)))
-
-    function L1_prob_func(prob, i, repeat)
-        rand_init = SVector{n_gpu}(Float32.(rand(true_ξ₀)))
-        new_u0 = vcat(rand_init, rand_init,
-                      SVector{m_gpu}(zeros(Float32, m_gpu)),
-                      SVector{n_gpu}(zeros(Float32, n_gpu)))
-        remake(prob, u0 = new_u0)
-    end
-    ensemble_L1_problem = EnsembleProblem(L1_problem, prob_func = L1_prob_func)
-
-    batch_size = cld(Ntraj, numGPUs)
-    @info "Running Ensemble Simulation of L1-DRAC System on $numGPUs GPUs with batch size of $batch_size per GPU"
-    L1_sol = solve(ensemble_L1_problem, GPUEM(), DiffEqGPU.EnsembleGPUKernel(CUDA.CUDABackend()),
-                   dt=Float32(Δₜ), trajectories=Ntraj, batch_size=batch_size,
-                   progress=true, progress_steps=prog_steps,
-                   saveat=Float32(Δ_saveat), adaptive=false)
+    @info "Running Ensemble Simulation of L1-DRAC System (GPU)"
+    @CUDA.time L1_sol = _L1_gpu_solve_kernel(tspan, Δₜ, Ntraj, Δ_saveat, true_ξ₀,
+                                              f, g, g_perp, p, Λμ, Λσ, dynamics_params,
+                                              ω, Tₛ, λₛ,
+                                              Val(n_gpu), Val(m_gpu), Val(d_gpu))
     @info "Done"
-    return L1_sol
+    return [L1_sol]
+end
+
+# Inner Private Method 2: Multi-GPU - calls _L1_gpu_solve_kernel in each @async
+# Returns Vector{EnsembleSolution} (one per GPU)
+function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSystem, L1params::L1DRACParams,
+                                   ::Val{n_gpu}, ::Val{m_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, m_gpu, d_gpu}
+    @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
+    @unpack true_ξ₀ = getfield(true_system, :init_dists)
+    @unpack f, g, g_perp, p, dynamics_params = getfield(true_system, :nom_vec_fields)
+    @unpack Λμ, Λσ = getfield(true_system, :unc_vec_fields)
+    @unpack ω, Tₛ, λₛ = L1params
+
+    ## Weighted trajectory distribution: GPU 0 gets half the load of other GPUs
+    #
+    # Let X = trajectories per "full" GPU (GPUs 1, 2, ...)
+    # GPU 0 does X/2 (reduced capacity due to main process memory overhead)
+    #
+    # Equation for N GPUs:
+    #   X/2 + X + X + ... + X = Ntraj
+    #   X/2 + (N-1)*X         = Ntraj
+    #   X * (0.5 + N - 1)     = Ntraj
+    #   X = Ntraj / (N - 0.5)
+    #
+    # Example: 3 GPUs, 100 trajectories
+    #   X = 100 / 2.5 = 40
+    #   GPU 0: 20, GPU 1: 40, GPU 2: 40
+    #
+    other_traj = ceil(Int, Ntraj / (numGPUs - 0.5))  # X
+    gpu0_traj = other_traj ÷ 2                        # X/2
+
+    solutions = Vector{Any}(undef, numGPUs)
+
+    @sync begin
+        for gpu_id in 0:(numGPUs-1)
+            @async begin
+                CUDA.device!(gpu_id)
+                gpu_traj = (gpu_id == 0) ? gpu0_traj : other_traj
+                @info "GPU $gpu_id: solving $gpu_traj trajectories"
+
+                # Calls helper with DIFFERENT function name - clear call graph
+                gpu_sol = _L1_gpu_solve_kernel(tspan, Δₜ, gpu_traj, Δ_saveat, true_ξ₀,
+                                               f, g, g_perp, p, Λμ, Λσ, dynamics_params,
+                                               ω, Tₛ, λₛ,
+                                               Val(n_gpu), Val(m_gpu), Val(d_gpu))
+                solutions[gpu_id + 1] = gpu_sol
+            end
+        end
+    end
+
+    @info "Multi-GPU complete" num_solutions=numGPUs trajectories_per_gpu=length.(solutions)
+    return solutions
 end

@@ -45,7 +45,7 @@ L1DRAC/
 ├── src/              # Main package source
 │   ├── L1DRAC.jl           # Main module
 │   ├── types.jl            # Type definitions
-│   ├── gpu_setup.jl        # Backend & GPU worker setup/cleanup functions 
+│   ├── auxiliary.jl        # Backend selection & cleanup functions 
 │   ├── nominal_system.jl   # NominalSystem simulation (CPU + GPU)
 │   ├── true_system.jl      # TrueSystem simulation (CPU + GPU)
 │   └── L1_system.jl        # L1-DRAC simulation (CPU + GPU)
@@ -205,12 +205,14 @@ max_GPUs = 1
 ens_nom_sol = system_simulation(params, nominal_system; simtype=:ensemble, backend=:gpu)
 ```
 
-#### 2. Solver backend (`:cpu` `:gpu`)
+#### 2. Solver backend (`cpu()` `gpu()`)
  should this not be auto assigned since we have a code that determines GPU/CPU based on user input and available resources?
 
 #### 3. `Warmup` for JIT compilaaion
 
 #### 4. `@CUDA.time()` for GPU solvers, and at the end `GC.gc()` and `CUD.reclaim()` to free up GPU memory. 
+
+#### 5. Solution returned are `Vector{<:RODESolution}` for a single trajectory solution, or `Vector{<:EnsembleSolution}` with `length = N`, `N = 1` when using CPU or single GPU, and `N = # of GPUs` used 
 
 
 
