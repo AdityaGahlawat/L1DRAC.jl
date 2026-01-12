@@ -36,22 +36,20 @@ function setup_double_integrator(; Ntraj = 10)
     C = SMatrix{2,2}(1.0I)
     D = 0.0
 
+    # Baseline controller 
     sys = ss(A, B, C, D)
     DesiredPoles = -λ * ones(2)
     K = SMatrix{1,2}(place(sys, DesiredPoles))
-    A_cl = A - B * K
-
-    # All qunatities whose size cannot be determined at compile-time need to go inside the dynamics_params tuple for GPU compatibility
-    # E.g., instead of declaring global consts, we wish to keep A_cl, B, and K as variables, hence will be collected into dynamics_params
-    # Build params tuple for GPU
-    
+    # dp = dynamics_params; Collects items whose size cannot be determined at compile-time (for GPU)
+    # A, B are @SMatrix literals (compile-time known), only K is runtime-computed
+    dp = (; K)
+    function baseline_input(t, x, dp)
+        trck_traj(t) = @SVector [5*sin(t) + 3*cos(2*t), 0.0]
+        return dp.K * (trck_traj(t) - x)
+    end
 
     # Dynamics functions
-
-    trck_traj(t) = @SVector [5*sin(t) + 3*cos(2*t), 0.0]
-
-    dp = (; A_cl, B, K) # dp = dynamics_params; Collects items whose size cannot be determined at compile-time (for GPU)
-    f(t, x, dp) = dp.A_cl * x + dp.B * dp.K * trck_traj(t)
+    f(t, x, dp) = A * x + B * baseline_input(t, x, dp)  
 
     g(t, x, dp) = @SVector [0.0, 1.0]
     g_perp(t, x, dp) = @SVector [1.0, 0.0]
