@@ -77,7 +77,8 @@ Computation time benchmark on a simple 2-D system.
 
 
 
-### Example - STALE (to be edited)
+### Example 
+**Source:** [`examples/ex1/doubleintegrator1D.jl`](examples/ex1/doubleintegrator1D.jl)
 
 ```julia
 using L1DRAC

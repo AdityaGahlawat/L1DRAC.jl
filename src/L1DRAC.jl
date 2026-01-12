@@ -20,12 +20,16 @@ include("auxiliary.jl")
 include("nominal_system.jl")
 include("true_system.jl")
 include("L1_system.jl")
+include("run_simulations.jl")
 
 # Types for computation Backends
 export CPU, GPU
 
 # GPU setup functions
 export get_backend, get_numGPUs, cleanup_environment
+
+# High-level simulation runner
+export run_simulations
 
 # Types for solutions, needed for multiple dispatch plot functions
 export RODESolution
