@@ -71,7 +71,7 @@ end
 function cleanup_environment(::GPU)
     GC.gc()
     CUDA.reclaim()
-    @info "GPU memory reclaimed"
+    @info "CPU and GPU memory reclaimed"
 end
 
 #= OLD Distributed.jl functions (removed in @async refactor - see v1.1.0-GPU-parallel-PMAP)
