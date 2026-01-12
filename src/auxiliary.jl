@@ -1,13 +1,11 @@
 ####################################################################################
-# GPU Setup and Cleanup Functions
+# Auxiliary Functions (Backend Selection & Cleanup)
 #
 # Usage:
-#   using Distributed, CUDA, L1DRAC
-#   numGPUs = setup_gpu_workers(; max_GPUs = 2)
-#   @everywhere using CUDA, L1DRAC, ...  # User loads packages on workers
-#   assign_gpus_to_workers()              # Assign GPUs to workers
+#   using CUDA, L1DRAC
+#   backend = get_backend(numGPUs)  # GPU(N) for N GPUs, CPU() for 0
 #   # ... run simulations ...
-#   cleanup_gpu_environment()
+#   cleanup_environment(backend)
 ####################################################################################
 
 #=
@@ -35,6 +33,49 @@ function get_backend(numGPUs::Int)
     end
 end
 
+"""
+    get_numGPUs(max_GPUs::Int) -> Int
+
+Converts user's max_GPUs request to actual numGPUs.
+Returns min(max_GPUs, length(CUDA.devices())).
+
+- max_GPUs = 0 → returns 0 (CPU mode)
+- max_GPUs > available → caps to available, logs warning
+- max_GPUs ≤ available → returns max_GPUs
+"""
+function get_numGPUs(max_GPUs::Int)
+    @assert max_GPUs >= 0 "max_GPUs must be non-negative"
+
+    if max_GPUs == 0
+        @info "CPU mode requested"
+        return 0
+    end
+
+    available_GPUs = Int(length(CUDA.devices()))
+
+    if max_GPUs > available_GPUs
+        @warn "Requested $max_GPUs GPUs but only $available_GPUs available. Using $available_GPUs."
+        return available_GPUs
+    else
+        @info "GPU mode" max_GPUs=max_GPUs available_GPUs=available_GPUs
+        return max_GPUs
+    end
+end
+
+# Cleanup methods (multiple dispatch based on backend)
+function cleanup_environment(::CPU)
+    GC.gc()
+    @info "Memory reclaimed (CPU)"
+end
+
+function cleanup_environment(::GPU)
+    GC.gc()
+    CUDA.reclaim()
+    @info "CPU and GPU memory reclaimed"
+end
+
+#= OLD Distributed.jl functions (removed in @async refactor - see v1.1.0-GPU-parallel-PMAP)
+
 # Assign each worker to a different GPU (call after @everywhere using CUDA)
 function assign_gpus_to_workers()
     numGPUs = min(length(workers()), length(CUDA.devices()))
@@ -46,29 +87,12 @@ function assign_gpus_to_workers()
     @info "GPUs assigned" Devices=join(["Worker $w → CuDevice($(i-1))" for (i, w) in enumerate(workers()[1:numGPUs])], ", ")
 end
 
-# Remove any existing Distributed workers and free GPU memory
-function cleanup_gpu_environment()
-    @info "Removing Stale Workers and Shedding Memory"
-    if nprocs() > 1
-        rmprocs(workers())
-    end
-    GC.gc()
-    CUDA.reclaim()
-end
-
 # Set up GPU workers for multi-GPU ensemble simulations
-# max_GPUs: 0 = CPU only, 1 = single GPU (default), N > 1 = multi-GPU
-# Returns: numGPUs (actual number of GPUs being used)
 function setup_gpu_workers(; max_GPUs = 1)
-
     cleanup_gpu_environment()
-
     @assert max_GPUs isa Integer && max_GPUs >= 0 "max_GPUs must be a non-negative integer"
-
     available_GPUs = length(CUDA.devices())
     numGPUs = min(max_GPUs, available_GPUs)
-
-    # Setup Distributed workers for multi-GPU
     if numGPUs > 1 && nprocs() == 1
         addprocs(numGPUs)
         @info "Multi-GPU mode: $numGPUs workers spawned"
@@ -77,6 +101,6 @@ function setup_gpu_workers(; max_GPUs = 1)
     else
         @info "CPU only mode" Detected=available_GPUs Assigned=numGPUs Threads=Threads.nthreads()
     end
-
     return numGPUs
 end
+=#

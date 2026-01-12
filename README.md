@@ -7,6 +7,7 @@
 - [Description](#descrrption)
 - [Installation](#installation)
 - [Project Structure](#project-structure)
+- [Benchmarks](#benchmarks)
 - [Example](#example)
 - [TODO](#todo)
 
@@ -24,39 +25,52 @@ Package for the numerical implementation of ***$\mathcal{L}_1$ Distributionally 
 
 
 ### Installation
-
-**STEP 1**: Enable [multi-threading](https://docs.julialang.org/en/v1/manual/multi-threading/)
-- Check available threads in your terminal: `nproc`
-- Start Julia with: `julia -t auto` or `julia -t N` (where N is the number of threads, e.g., `julia -t 8`)
-- Verify inside Julia: `Threads.nthreads()` 
-
+Start Julia with [multi-threading](https://docs.julialang.org/en/v1/manual/multi-threading/) 
+```bash
+$ julia -t auto  
+# or  
+$ julia -t <num threads>
+```
+Add package 
 ```julia
 julia> ] add https://github.com/AdityaGahlawat/L1DRAC.jl
+julia> ] Threads.nthreads() # verify num threads
 ```
 
 ### Project Structure
 
 ```
 L1DRAC/
-├── Airlock/          # Work-in-progress code (not yet integrated)
-├── Archive/          # Deprecated/old code for reference
+├── airlock/          # Work-in-progress code (not yet integrated)
+├── archive/          # Deprecated/old code for reference
+├── benchmark/        # Performance benchmarks
 ├── examples/
 │   └── ex1/
+├── sandbox/          # Development scratch work
 ├── src/              # Main package source
 │   ├── L1DRAC.jl           # Main module
 │   ├── types.jl            # Type definitions
-│   ├── gpu_setup.jl        # Backend & GPU worker setup/cleanup functions 
+│   ├── auxiliary.jl        # Backend selection & cleanup functions
 │   ├── nominal_system.jl   # NominalSystem simulation (CPU + GPU)
 │   ├── true_system.jl      # TrueSystem simulation (CPU + GPU)
 │   └── L1_system.jl        # L1-DRAC simulation (CPU + GPU)
-├── test/             # Tests and benchmarks
-├── Writeups/         # Documentation and derivations
+├── test/             # Package tests (runtests.jl)
+├── writeups/         # Documentation and derivations
 ├── LICENSE
 ├── Manifest.toml
 ├── Project.toml
-├── README.md
-└── TODO.md
+└── README.md
 ```
+
+### Benchmarks
+
+![](benchmark/benchmark_results.png)
+
+Computation time benchmark on a simple 2-D system.
+
+**Source:** [`benchmark/benchmark_baseline_Mk3.jl`](benchmark/benchmark_baseline_Mk3.jl)
+
+**Hardware:** Intel i9-10920X (24 threads), 3x NVIDIA RTX A4000 (16GB each)
 
 
 
@@ -160,20 +174,15 @@ plotfunc()
 
 
 ## TODO
-- Parallelize over ML server
-- Multiple GPU 
-    - Test using example from `test/NestedFunctionGPU.jl` 
-    - With 1 GPU,  ran out of memory at `Ntraj=1e8`
-- Move examples to Pluto
-- Control logging with flags (baseline, L1, Total)
-    - Total control Logging
-    - Baseline Control Function and logging
-    - L1 control logging
-- L1 sim function to be moved to with the other sim functions (3 methods)
-- ~~Project.toml for examples~~ (not worth it - Julia environments are overly complicated for this use case)
-    - ~~Clean up package's Project.toml~~
 - Parallelized plot utilities (multithreading loops/?)
+- baseline control function
+- Control logging 
+    - Baseline 
+    - L1
+    - Total
 - Parallelized empirical distributions
+- Sharper bounds computation
+- Manually serialize batches for required mem > available mem on GPUs
 
 ---
 
@@ -205,12 +214,14 @@ max_GPUs = 1
 ens_nom_sol = system_simulation(params, nominal_system; simtype=:ensemble, backend=:gpu)
 ```
 
-#### 2. Solver backend (`:cpu` `:gpu`)
+#### 2. Solver backend (`cpu()` `gpu()`)
  should this not be auto assigned since we have a code that determines GPU/CPU based on user input and available resources?
 
 #### 3. `Warmup` for JIT compilaaion
 
 #### 4. `@CUDA.time()` for GPU solvers, and at the end `GC.gc()` and `CUD.reclaim()` to free up GPU memory. 
+
+#### 5. Solution returned are `Vector{<:RODESolution}` for a single trajectory solution, or `Vector{<:EnsembleSolution}` with `length = N`, `N = 1` when using CPU or single GPU, and `N = # of GPUs` used 
 
 
 
