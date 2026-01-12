@@ -119,54 +119,54 @@ end
         setup = create_test_setup(; Ntraj=10)
         solutions = run_simulations(setup; max_GPUs=0, systems=[:nominal_sys])
 
-        @test haskey(solutions, :nominal_sol)
-        @test !haskey(solutions, :true_sol)
-        @test !haskey(solutions, :L1_sol)
+        @test !isnothing(solutions.nominal_sol)
+        @test isnothing(solutions.true_sol)
+        @test isnothing(solutions.L1_sol)
     end
 
     @testset "T10: Only true system" begin
         setup = create_test_setup(; Ntraj=10)
         solutions = run_simulations(setup; max_GPUs=0, systems=[:true_sys])
 
-        @test !haskey(solutions, :nominal_sol)
-        @test haskey(solutions, :true_sol)
-        @test !haskey(solutions, :L1_sol)
+        @test isnothing(solutions.nominal_sol)
+        @test !isnothing(solutions.true_sol)
+        @test isnothing(solutions.L1_sol)
     end
 
     @testset "T11: Only L1DRAC system" begin
         setup = create_test_setup(; Ntraj=10)
         solutions = run_simulations(setup; max_GPUs=0, systems=[:L1_sys])
 
-        @test !haskey(solutions, :nominal_sol)
-        @test !haskey(solutions, :true_sol)
-        @test haskey(solutions, :L1_sol)
+        @test isnothing(solutions.nominal_sol)
+        @test isnothing(solutions.true_sol)
+        @test !isnothing(solutions.L1_sol)
     end
 
     @testset "T12: nominal + true" begin
         setup = create_test_setup(; Ntraj=10)
         solutions = run_simulations(setup; max_GPUs=0, systems=[:nominal_sys, :true_sys])
 
-        @test haskey(solutions, :nominal_sol)
-        @test haskey(solutions, :true_sol)
-        @test !haskey(solutions, :L1_sol)
+        @test !isnothing(solutions.nominal_sol)
+        @test !isnothing(solutions.true_sol)
+        @test isnothing(solutions.L1_sol)
     end
 
     @testset "T13: nominal + L1DRAC" begin
         setup = create_test_setup(; Ntraj=10)
         solutions = run_simulations(setup; max_GPUs=0, systems=[:nominal_sys, :L1_sys])
 
-        @test haskey(solutions, :nominal_sol)
-        @test !haskey(solutions, :true_sol)
-        @test haskey(solutions, :L1_sol)
+        @test !isnothing(solutions.nominal_sol)
+        @test isnothing(solutions.true_sol)
+        @test !isnothing(solutions.L1_sol)
     end
 
     @testset "T14: true + L1DRAC" begin
         setup = create_test_setup(; Ntraj=10)
         solutions = run_simulations(setup; max_GPUs=0, systems=[:true_sys, :L1_sys])
 
-        @test !haskey(solutions, :nominal_sol)
-        @test haskey(solutions, :true_sol)
-        @test haskey(solutions, :L1_sol)
+        @test isnothing(solutions.nominal_sol)
+        @test !isnothing(solutions.true_sol)
+        @test !isnothing(solutions.L1_sol)
     end
 
     @testset "E01: Empty systems list" begin
