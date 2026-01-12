@@ -3,6 +3,9 @@
 
 # *L1DRAC*
 
+[![Build Status](https://github.com/AdityaGahlawat/L1DRAC.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/AdityaGahlawat/L1DRAC.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Coverage](https://codecov.io/gh/AdityaGahlawat/L1DRAC.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/AdityaGahlawat/L1DRAC.jl)
+
 ## Table of Contents
 - [Description](#descrrption)
 - [Installation](#installation)
@@ -74,7 +77,7 @@ Computation time benchmark on a simple 2-D system.
 
 
 
-### Example
+### Example - STALE (to be edited)
 
 ```julia
 using L1DRAC
@@ -183,6 +186,8 @@ plotfunc()
 - Parallelized empirical distributions
 - Sharper bounds computation
 - Manually serialize batches for required mem > available mem on GPUs
+- Add ```struct``` wrappers to auto extend necessary function signatures to the complete ```(t,x,dynamics_params)``` for GPU computation. 
+    - E.g, ```g(t) -> g(t,x,dynamics_params)```.
 
 ---
 
