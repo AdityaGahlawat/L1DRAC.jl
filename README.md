@@ -16,7 +16,7 @@
 
 ### Description
 
-Package for the numerical implementation of ***$\mathcal{L}_1$ Distributionally Robust Adaptive Control ($\mathcal{L}_1$-DRAC)***. Find out more about it in our [paper](https://adityagahlawat.github.io/Preprints/DRAC.pdf):
+Package for the numerical implementation of **$\mathcal{L}_1$ Distributionally Robust Adaptive Control ($\mathcal{L}_1$-DRAC)**. Find out more about it in our [paper](https://adityagahlawat.github.io/Preprints/DRAC.pdf):
 ```
 @article{gahlawat2025DRAC,
   title={$\mathcal{L}_1$-DRAC: Distributionally Robust Adaptive Control},
