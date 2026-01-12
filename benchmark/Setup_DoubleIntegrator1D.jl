@@ -50,26 +50,26 @@ function setup_double_integrator(; Ntraj = 10)
 
     trck_traj(t) = @SVector [5*sin(t) + 3*cos(2*t), 0.0]
 
-    dynamics_params = (; A_cl, B, K) # Collects items for dynamics whose size cannot be determined at compile-time (for GPU)
-    f(t, x, dynamics_params) = dynamics_params.A_cl * x + dynamics_params.B * dynamics_params.K * trck_traj(t)
+    dp = (; A_cl, B, K) # dp = dynamics_params; Collects items whose size cannot be determined at compile-time (for GPU)
+    f(t, x, dp) = dp.A_cl * x + dp.B * dp.K * trck_traj(t)
 
-    g(t, x, dynamics_params) = @SVector [0.0, 1.0]
-    g_perp(t, x, dynamics_params) = @SVector [1.0, 0.0]
+    g(t, x, dp) = @SVector [0.0, 1.0]
+    g_perp(t, x, dp) = @SVector [1.0, 0.0]
 
-    p_um(t, x, dynamics_params) = 2.0 * @SMatrix [0.01 0.1]
-    p_m(t, x, dynamics_params) = 1.0 * @SMatrix [0.0 0.8]
-    p(t, x, dynamics_params) = vcat(p_um(t, x, dynamics_params), p_m(t, x, dynamics_params))
+    p_um(t, x, dp) = 2.0 * @SMatrix [0.01 0.1]
+    p_m(t, x, dp) = 1.0 * @SMatrix [0.0 0.8]
+    p(t, x, dp) = vcat(p_um(t, x, dp), p_m(t, x, dp))
 
-    Λμ_um(t, x, dynamics_params) = 1e-2 * (1 + sin(x[1]))
-    Λμ_m(t, x, dynamics_params) = 1.0 * (5 + 10*cos(x[2]) + 5*norm(x))
-    Λμ(t, x, dynamics_params) = @SVector [Λμ_um(t, x, dynamics_params), Λμ_m(t, x, dynamics_params)]
+    Λμ_um(t, x, dp) = 1e-2 * (1 + sin(x[1]))
+    Λμ_m(t, x, dp) = 1.0 * (5 + 10*cos(x[2]) + 5*norm(x))
+    Λμ(t, x, dp) = @SVector [Λμ_um(t, x, dp), Λμ_m(t, x, dp)]
 
-    Λσ_um(t, x, dynamics_params) = 0.0 * @SMatrix [0.1+cos(x[2]) 2.0]
-    Λσ_m(t, x, dynamics_params) = σ_scale * @SMatrix [0.0 5+sin(x[2])+5.0*(norm(x) < 1 ? norm(x) : sqrt(norm(x)))]
-    Λσ(t, x, dynamics_params) = vcat(Λσ_um(t, x, dynamics_params), Λσ_m(t, x, dynamics_params))
+    Λσ_um(t, x, dp) = 0.0 * @SMatrix [0.1+cos(x[2]) 2.0]
+    Λσ_m(t, x, dp) = σ_scale * @SMatrix [0.0 5+sin(x[2])+5.0*(norm(x) < 1 ? norm(x) : sqrt(norm(x)))]
+    Λσ(t, x, dp) = vcat(Λσ_um(t, x, dp), Λσ_m(t, x, dp))
 
     # Nominal Vector Fields
-    nominal_components = nominal_vector_fields(f, g, g_perp, p, dynamics_params)
+    nominal_components = nominal_vector_fields(f, g, g_perp, p, dp)
 
     # Uncertain Vector Fields
     uncertain_components = uncertain_vector_fields(Λμ, Λσ)
@@ -92,7 +92,7 @@ function setup_double_integrator(; Ntraj = 10)
     return (
         simulation_parameters = simulation_parameters,
         system_dimensions = system_dimensions,
-        dynamics_params = dynamics_params,
+        dynamics_params = dp,
         nominal_system = nominal_system,
         true_system = true_system,
         L1params = L1params
