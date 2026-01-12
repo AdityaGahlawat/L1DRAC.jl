@@ -54,7 +54,8 @@ function setup_system(; Ntraj=10) # Ntraj = number of trajectories for ensemble 
     Λμ(t, x, dp) = @SVector [Λμ_um(t, x, dp), Λμ_m(t, x, dp)]
 
     Λσ_um(t, x, dp) = 0.0 * @SMatrix [0.1+cos(x[2]) 2.0]
-    Λσ_m(t, x, dp) = @SMatrix [0.0 5+sin(x[2])+5.0*(norm(x) < 1 ? norm(x) : sqrt(norm(x)))]
+    Λσ_m(t, x, dp) = @SMatrix [0.0 5+sin(x[2])+
+                        5.0*(norm(x) < 1 ? norm(x) : sqrt(norm(x)))]
     Λσ(t, x, dp) = vcat(Λσ_um(t, x, dp), Λσ_m(t, x, dp))
 
     uncertain_components = uncertain_vector_fields(Λμ, Λσ)
@@ -65,8 +66,10 @@ function setup_system(; Ntraj=10) # Ntraj = number of trajectories for ensemble 
     initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
     # Define Systems
-    nominal_system = nom_sys(system_dimensions, nominal_components, initial_distributions)
-    true_system = true_sys(system_dimensions, nominal_components, uncertain_components, initial_distributions)
+    nominal_system = nom_sys(system_dimensions, nominal_components, 
+                        initial_distributions)
+    true_system = true_sys(system_dimensions, nominal_components, 
+                        uncertain_components, initial_distributions)
 
     # L1-DRAC Parameters (PLACEHOLDER values)
     ω = 50.0 # Filter bandwidth
@@ -85,22 +88,24 @@ end
 ###################################################################
 ## MAIN
 ###################################################################
-function main(; Ntraj = Int(1e1), max_GPUs=10, systems=[:nominal_sys, :true_sys, :L1_sys]) 
+function main(; Ntraj = Int(1e1), max_GPUs=10, 
+                        systems=[:nominal_sys, :true_sys, :L1_sys]) 
 
     @info "Warmup run for JIT compilation"
     println("=====================================") 
     warmup_setup = setup_system(; Ntraj = 10)
-    run_simulations(warmup_setup; max_GPUs=max_GPUs, systems=systems)
+    run_simulations(warmup_setup; max_GPUs=max_GPUs, systems=systems);
 
     println("=====================================")
     @info "Complete run for Ntraj=$Ntraj" 
     println("=====================================")
     setup = setup_system(; Ntraj = Ntraj)
     solutions = run_simulations(setup; max_GPUs=max_GPUs, systems=systems)
-    return solutions, systems
+    return solutions
 end
 
-main();
+nominal_sol, true_sol, L1_sol = main();
+
 
 ###################################################################
 ## PLOTS

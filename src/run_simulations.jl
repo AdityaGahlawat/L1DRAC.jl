@@ -62,5 +62,9 @@ function run_simulations(setup; max_GPUs::Int=1, systems::Vector{Symbol}=[:nomin
     # Cleanup
     cleanup_environment(backend)
 
-    return NamedTuple(results)
+    return (
+        nominal_sol = get(results, :nominal_sol, nothing),
+        true_sol = get(results, :true_sol, nothing),
+        L1_sol = get(results, :L1_sol, nothing)
+    )
 end
