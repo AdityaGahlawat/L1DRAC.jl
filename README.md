@@ -3,7 +3,7 @@
 
 # *L1DRAC*
 
-[![Build Status](https://github.com/AdityaGahlawat/L1DRAC.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/AdityaGahlawat/L1DRAC.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/AdityaGahlawat/L1DRAC.jl/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AdityaGahlawat/L1DRAC.jl/actions/workflows/ci.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/AdityaGahlawat/L1DRAC.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/AdityaGahlawat/L1DRAC.jl)
 
 ## Table of Contents
