@@ -104,7 +104,7 @@ function main(; Ntraj = Int(1e1), max_GPUs=10,
     return solutions
 end
 
-nominal_sol, true_sol, L1_sol = main();
+
 
 
 ###################################################################
