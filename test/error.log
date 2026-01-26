@@ -1,0 +1,586 @@
+T01: Single trajectory, all systems: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:84
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:84
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:85 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:86 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T03: Ensemble Ntraj=10, all systems: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:95
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:84
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:96 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:97 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T04: Ensemble Ntraj=100, all systems: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:108
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:84
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:109 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:110 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T10: Only true system: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:127
+  Got exception outside of a @test
+  TypeError: in keyword argument systems, expected Vector{Symbol}, got a value of type Vector{Bool}
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:84
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:128 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:129 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T12: nominal + true: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:145
+  Got exception outside of a @test
+  TypeError: in keyword argument systems, expected Vector{Symbol}, got a value of type Vector{Any}
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:84
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:146 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:147 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T14: true + L1DRAC: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:163
+  Got exception outside of a @test
+  TypeError: in keyword argument systems, expected Vector{Symbol}, got a value of type Vector{Any}
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:84
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:164 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_cpu.jl:165 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T02: Single trajectory, 1 GPU: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:82
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:82
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:83 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:84 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:12 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T05: Ensemble Ntraj=10, 1 GPU: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:93
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:82
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:94 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:95 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:12 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T06: Ensemble Ntraj=100, 1 GPU: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:102
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:82
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:103 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:104 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:12 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T07: Ensemble Ntraj=10, 3 GPUs: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:112
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:82
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:113 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:114 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:12 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+T08: Ensemble Ntraj=100, 3 GPUs: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:122
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:82
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:123 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:124 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:12 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+X02: max_GPUs > available caps correctly: Error During Test at /home/adi/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:134
+  Got exception outside of a @test
+  MethodError: no method matching var"#run_simulations#14"(::Int64, ::Vector{Any}, ::typeof(run_simulations), ::@NamedTuple{simulation_parameters::L1DRAC.SimParams, nominal_system::L1DRAC.NominalSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.InitialDistributions}, true_system::L1DRAC.TrueSystem{L1DRAC.SysDims, L1DRAC.NominalVectorFields, L1DRAC.UncertainVectorFields, L1DRAC.InitialDistributions}, L1params::L1DRAC.L1DRACParams})
+  The function `#run_simulations#14` exists, but no method is defined for this combination of argument types.
+  
+  Closest candidates are:
+    var"#run_simulations#14"(::Int64, !Matched::Vector{Symbol}, ::typeof(run_simulations), ::Any)
+     @ L1DRAC ~/.julia/dev/L1DRAC/src/run_simulations.jl:10
+  
+  Stacktrace:
+    [1] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:82
+    [2] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [3] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:135 [inlined]
+    [4] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [5] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/test_run_simulations_gpu.jl:137 [inlined]
+    [6] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+    [7] top-level scope
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:9
+    [8] macro expansion
+      @ ~/.julia/juliaup/julia-1.12.4+0.x64.linux.gnu/share/julia/stdlib/v1.12/Test/src/Test.jl:1776 [inlined]
+    [9] macro expansion
+      @ ~/.julia/dev/L1DRAC/test/runtests.jl:12 [inlined]
+   [10] include(mapexpr::Function, mod::Module, _path::String)
+      @ Base ./Base.jl:307
+   [11] IncludeInto
+      @ ./Base.jl:308 [inlined]
+   [12] (::var"#28#29"{IOStream})()
+      @ Main ./REPL[4]:5
+   [13] (::Base.RedirectStdStream)(thunk::var"#28#29"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [14] #26
+      @ ./REPL[4]:3 [inlined]
+   [15] (::Base.RedirectStdStream)(thunk::var"#26#27"{IOStream}, stream::IOStream)
+      @ Base ./stream.jl:1464
+   [16] #24
+      @ ./REPL[4]:2 [inlined]
+   [17] open(::var"#24#25", ::String, ::Vararg{String}; kwargs::@Kwargs{})
+      @ Base ./io.jl:410
+   [18] open(::Function, ::String, ::String)
+      @ Base ./io.jl:407
+   [19] top-level scope
+      @ REPL[4]:1
+Test Summary:                                | Pass  Error  Total  Time
+L1DRAC.jl                                    |   12     12     24  1.3s
+  run_simulations - CPU                      |   12      6     18  1.0s
+    T01: Single trajectory, all systems      |           1      1  0.2s
+    T03: Ensemble Ntraj=10, all systems      |           1      1  0.0s
+    T04: Ensemble Ntraj=100, all systems     |           1      1  0.0s
+    T09: Only nominal system                 |    3             3  0.2s
+    T10: Only true system                    |           1      1  0.0s
+    T11: Only L1DRAC system                  |    3             3  0.2s
+    T12: nominal + true                      |           1      1  0.0s
+    T13: nominal + L1DRAC                    |    3             3  0.2s
+    T14: true + L1DRAC                       |           1      1  0.0s
+    E01: Empty systems list                  |    1             1  0.0s
+    E02: Invalid system name                 |    1             1  0.0s
+    E03: L1DRAC without L1params             |    1             1  0.0s
+  run_simulations - GPU                      |           6      6  0.2s
+    T02: Single trajectory, 1 GPU            |           1      1  0.1s
+    T05: Ensemble Ntraj=10, 1 GPU            |           1      1  0.0s
+    T06: Ensemble Ntraj=100, 1 GPU           |           1      1  0.0s
+    T07: Ensemble Ntraj=10, 3 GPUs           |           1      1  0.0s
+    T08: Ensemble Ntraj=100, 3 GPUs          |           1      1  0.0s
+    X02: max_GPUs > available caps correctly |           1      1  0.0s
+RNG of the outermost testset: Random.Xoshiro(0x7e30b50abcf2c95b, 0x2f49cb63b70eeb4c, 0x4cf1ad436de51e0a, 0x0f67615d2f05d7c9, 0xf89a231350c207f0)
+
+
+FATAL ERROR:
+LoadError: Some tests did not pass: 12 passed, 0 failed, 12 errored, 0 broken.
+in expression starting at /home/adi/.julia/dev/L1DRAC/test/runtests.jl:8

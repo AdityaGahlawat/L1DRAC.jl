@@ -22,14 +22,16 @@ struct NominalVectorFields
     g::Function
     g_perp::Function
     p::Function
+    dynamics_params  # Collects items for dynamics whose size cannot be determined at compile-time (for GPU)
 end
-nominal_vector_fields(f::Function, g::Function, g_perp::Function, p::Function) = NominalVectorFields(f, g, g_perp, p)
-## Uncertain Vector Fields 
-struct UncertainVectorFields 
-    Λμ::Function  
+nominal_vector_fields(f::Function, g::Function, g_perp::Function, p::Function, dynamics_params=()) = NominalVectorFields(f, g, g_perp, p, dynamics_params) # default empty tuple for dynamics_params
+## Uncertain Vector Fields
+struct UncertainVectorFields
+    Λμ::Function
     Λσ::Function
+    dynamics_params  # Collects items for dynamics whose size cannot be determined at compile-time (for GPU)
 end
-uncertain_vector_fields(Λμ::Function, Λσ::Function) = UncertainVectorFields(Λμ, Λσ)
+uncertain_vector_fields(Λμ::Function, Λσ::Function, dynamics_params=()) = UncertainVectorFields(Λμ, Λσ, dynamics_params) # default empty tuple for dynamics_params
 ## Initial distributions 
 struct InitialDistributions
     nominal_ξ₀::Any
@@ -234,3 +236,12 @@ function validate(constants::AssumptionConstants, sys::TrueSystem)
 
     return true
 end
+
+###################################################################
+# Computation Backend Types
+###################################################################
+struct CPU end
+struct GPU
+    numGPUs::Int
+end
+GPU() = GPU(1) # default to single GPU
