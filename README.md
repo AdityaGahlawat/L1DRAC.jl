@@ -212,6 +212,7 @@ end
 ![STALE](archive/ex1_old/Ex1plot.png)
 
 ## TODO
+- Add explanation of solution vector for L1 = `[x, xhat, Lambda_hat, Filter-state]`
 - Cleanup for registration with @JuliaRegistrator
 - Parallelized plot utilities (multithreading loops/?)
 - Control logging 
