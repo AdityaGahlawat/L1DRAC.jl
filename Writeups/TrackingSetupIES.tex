@@ -2,6 +2,8 @@
 
 \usepackage{xcolor}
 \usepackage{amsmath,amssymb,amsthm}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\Frobenius}[1]{\left\lVert#1\right\rVert_F}
 \usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
 
@@ -78,12 +80,37 @@ This yields the closed-loop dynamics
 
 As in the manuscript, we define 
 \begin{align}\label{eqn:main_f}
-       f(t,x) := & f_{cl}(x) + G v^\star(t) = f_{ol}(x) + G \left( k(x) + u^\star(t) - k\left(x^\star(t)\right) \right)
+       f(t,x) :=  f_{cl}(x) + G v^\star(t) 
+       =& f_{ol}(x) + G \left( k(x) + u^\star(t) - k\left(x^\star(t)\right) \right)
        \notag 
-       \\         
+       \\     
+       =& f_{ol}(x) + G \left( k(x)  - k\left(x^\star(t)\right) \right)    +  G  u^\star(t). 
 \end{align}
+If we assume that the nominal law $k$ is Lipschitz, i.e., there exists $L_k >0$ such that
+\begin{align*}
+       \norm{k(x) - k\left(x^\star\right)} \leq L_k \norm{x-x^\star}, \quad \forall x,x^\star \in \mathbb{R}^n,
+\end{align*}
+then, the bound in the paper should be changed from 
+\begin{align*}
+       \norm{f(t,x)} \leq \Delta_f \left(1+\norm{x}^2\right)^\frac{1}{2}, \quad \forall t,x,
+\end{align*}
+to
+\begin{align}\label{eqn:f_bound:change:1}
+       \norm{f(t,x)} 
+       \leq 
+       \Delta_{f_{ol}} \left(1+\norm{x}^2\right)^\frac{1}{2} 
+       +L_k \norm{x-x^\star} + \norm{G}\norm{u^\star(t)}, \quad \forall t,x.
+\end{align}
+which we will further change to reduce the conservatism as follows:
+\begin{align}\label{eqn:f_bound:change:2}
+       \norm{f(t,x)} 
+       \leq 
+        \left(\Delta_{f_1}^2+\Delta_{f_2}^2\norm{x}^2\right)^\frac{1}{2} 
+       +L_k \norm{x-x^\star} \quad \forall t,x,
+\end{align}
+for some known constants $\Delta_{f_1},\Delta_{f_2}, L_k \geq 0$, and where $\norm{G}\norm{u^\star(t)}$ is absorbed into $\Delta_{f_1}$.
 
-For our use case, we need to find $\Delta_f$ such that 
+
 \begin{align*}
        % \norm{f_{cl}(t,x)}
 \end{align*}
@@ -152,10 +179,38 @@ where $v^\star$ is the \textbf{feedforward term induced by the reference traject
 
 This yields
 \[
-\dot x = (A + B K) x + B v^\star,
+\dot x
+=
+f(t,x) 
+:= 
+(A + B K) x + B v^\star,
 \qquad
 \dot x^\star = (A + B K) x^\star + B v^\star .
 \]
+
+\subsection{{\color{red} General use in $\mathcal{L}_1$-DRAC}}
+
+We have that 
+\begin{align*}
+       \norm{f(t,x)} 
+       =& \norm{(A + B K) x + B v^\star(t)}
+       \\
+       =& \norm{(A + B K) x + B \left(u^\star(t) - K x^\star(t)\right)} 
+       \\
+       \leq& \Frobenius{A} \norm{x} + \Frobenius{B}\Frobenius{K}\norm{x(t) - x^\star(t)} + \Frobenius{B}\norm{u^\star(t)}, \quad \forall t,x.
+\end{align*}
+Then, as in~\eqref{eqn:f_bound:change:2}, we will determine constants $\Delta_{f_1},\Delta_{f_2}, L_k \geq 0$, such that 
+\begin{align}
+       \norm{f(t,x)} 
+       = 
+       \norm{(A+Bk)x + Bv^\star(t)}
+       \leq 
+        \left(\Delta_{f_1}^2+\Delta_{f_2}^2\norm{x}^2\right)^\frac{1}{2} 
+       +L_k \norm{x-x^\star} + \norm{G}\norm{u^\star(t)}, \quad \forall t,x,
+\end{align}
+where $\Delta_{f_1}$ is defined to reflect $\Frobenius{B}\norm{u^\star(t)}$, $\Delta_{f_2} = \Frobenius{A}$, and $L_k = \Frobenius{B}\Frobenius{K}$.
+Note that {\color{red} $u^\star$ comes from a planner, in our case, covariance steering, so we can put constraints on its (expected) magnitude to help define $\Delta_{f_1}$. Vivek has already established this.}
+
 
 \subsection{Error Dynamics}
 
