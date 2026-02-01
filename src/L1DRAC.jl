@@ -14,6 +14,7 @@ using OptimalTransport
 using JuMP
 using Ipopt
 using JuMP: MOI
+using JLD2
 
 include("types.jl")
 include("auxiliary.jl")
@@ -21,6 +22,7 @@ include("nominal_system.jl")
 include("true_system.jl")
 include("L1_system.jl")
 include("run_simulations.jl")
+include("data_logging.jl")
 
 # Types for computation Backends
 export CPU, GPU

@@ -81,7 +81,8 @@ function setup_system(; Ntraj=10) # Ntraj = number of trajectories for ensemble 
         simulation_parameters = simulation_parameters,
         nominal_system = nominal_system,
         true_system = true_system,
-        L1params = L1params
+        L1params = L1params,
+        system_dimensions = system_dimensions
     )
 end
 
