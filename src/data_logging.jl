@@ -44,7 +44,7 @@
 #   _process_solution_L1(sol_vec, n)   - Process L1 with extraction after stats
 #
 # MAIN FUNCTION:
-#   state_logging(sol_nominal, sol_true, sol_L1, system_dimensions; path)
+#   state_logging(system_dimensions; sol_nominal, sol_true, sol_L1, path)
 #     - Saves each non-nothing solution to JLD2 file
 #     - Returns named tuple of file paths
 
@@ -94,8 +94,8 @@ function _compute_statistics(sol_vec)
 end
 
 
-# _process_solution: Extract time, trajectories, and statistics from solution
-# Input: Vector{EnsembleSolution} (length 1 for single GPU/CPU, >1 for multi-GPU)
+# _process_solution: Process nominal or true system solution into uniform (t, u, mean, var) structure
+# Input: Vector{EnsembleSolution} where state dimension is system_dimensions.n
 # Returns: Named tuple (t, u, mean, var) for JLD2 saving
 function _process_solution(sol_vec)
     t = sol_vec[1][1].t
@@ -105,41 +105,67 @@ function _process_solution(sol_vec)
 end
 
 
+# _process_solution_L1: Process L1 system solution into uniform (t, u, mean, var) structure
+# Input: Vector{EnsembleSolution} where state dimension is 3*system_dimensions.n + system_dimensions.m
+#        (extended state: [X, Xhat, Xfilter, Λhat]), system_dimensions (SysDims struct)
+# Returns: Named tuple (t, u, mean, var) with only first n components (X only)
+# CRITICAL: Compute statistics FIRST on full extended state, THEN extract [1:n]
+function _process_solution_L1(sol_vec, system_dimensions)
+    @unpack n = system_dimensions
+    t = sol_vec[1][1].t
+
+    # FIRST: Compute statistics on FULL extended state (while EnsembleSolution available)
+    mean_full, var_full = _compute_statistics(sol_vec)
+
+    # THEN: Extract first n components from statistics
+    mean = [m[1:n] for m in mean_full]
+    var = [v[1:n] for v in var_full]
+
+    # THEN: Get full trajectories and extract first n from each
+    u_full = _concatenate_trajectories(sol_vec)
+    u = [[state[1:n] for state in traj] for traj in u_full]
+
+    return (t=t, u=u, mean=mean, var=var)
+end
+
+
 # state_logging: Save ensemble simulation solutions to JLD2 files
-# Saves EnsembleSolution objects directly for nominal and true systems.
-# For L1 solution, extracts only the first n state components (removes filter state).
+# All systems save with identical (t, u, mean, var) structure
 #
 # Arguments:
-#   sol_nominal, sol_true, sol_L1: Solutions (Vector{EnsembleSolution} or nothing)
 #   system_dimensions: SysDims struct containing n, m, d
-#   path: Output directory (created if doesn't exist)
+#   sol_nominal: (kwarg) Vector{EnsembleSolution} for nominal system
+#   sol_true:    (kwarg) Vector{EnsembleSolution} for true system
+#   sol_L1:      (kwarg) Vector{EnsembleSolution} for L1 system
+#   path:        (kwarg) Output directory (created if doesn't exist)
 #
 # Returns named tuple of file paths: (nominal=..., true_sys=..., L1=...)
-function state_logging(sol_nominal, sol_true, sol_L1, system_dimensions; path::String="sol_logs/")
-    @unpack n = system_dimensions
+function state_logging(system_dimensions; sol_nominal=nothing, sol_true=nothing, sol_L1=nothing, path::String="sol_logs/")
     mkpath(path)
 
     nominal_path = nothing
     true_path = nothing
     L1_path = nothing
 
-    # Save nominal solution directly
+    # Save nominal solution with uniform (t, u, mean, var) structure
     if sol_nominal !== nothing
+        data = _process_solution(sol_nominal)
         nominal_path = joinpath(path, "states_nominal.jld2")
-        jldsave(nominal_path; sol=sol_nominal)
+        jldsave(nominal_path; t=data.t, u=data.u, mean=data.mean, var=data.var)
     end
 
-    # Save true system solution directly
+    # Save true system solution with uniform (t, u, mean, var) structure
     if sol_true !== nothing
+        data = _process_solution(sol_true)
         true_path = joinpath(path, "states_true.jld2")
-        jldsave(true_path; sol=sol_true)
+        jldsave(true_path; t=data.t, u=data.u, mean=data.mean, var=data.var)
     end
 
-    # Save L1 solution - extract only first n state components
+    # Save L1 solution - compute statistics on full extended state, then extract first n
     if sol_L1 !== nothing
-        L1_extracted = _extract_L1_state(sol_L1, n)
+        data = _process_solution_L1(sol_L1, system_dimensions)
         L1_path = joinpath(path, "states_L1.jld2")
-        jldsave(L1_path; sol=L1_extracted)
+        jldsave(L1_path; t=data.t, u=data.u, mean=data.mean, var=data.var)
     end
 
     return (
@@ -147,21 +173,4 @@ function state_logging(sol_nominal, sol_true, sol_L1, system_dimensions; path::S
         true_sys = true_path,
         L1 = L1_path
     )
-end
-
-
-# _extract_L1_state: Extract first n components from L1 solution
-# L1 has extended state [X, Xhat, Xfilter, Λhat], we only want X (first n)
-# sol_L1 is always Vector{EnsembleSolution} (even single GPU returns [sol])
-function _extract_L1_state(sol_L1, n)
-    return [_extract_L1_ensemble(ensemble_sol, n) for ensemble_sol in sol_L1]
-end
-
-
-# _extract_L1_ensemble: Extract first n components from each trajectory in an EnsembleSolution
-# Returns (t, u) tuple where u has truncated states
-function _extract_L1_ensemble(sol, n)
-    t = sol[1].t
-    u = [[state[1:n] for state in traj.u] for traj in sol]
-    return (t=t, u=u)
 end

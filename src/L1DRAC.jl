@@ -33,6 +33,9 @@ export get_backend, get_numGPUs, cleanup_environment
 # High-level simulation runner
 export run_simulations
 
+# Data logging
+export state_logging
+
 # Types for solutions, needed for multiple dispatch plot functions
 export RODESolution
 export EnsembleSolution
