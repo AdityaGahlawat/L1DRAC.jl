@@ -76,8 +76,8 @@ function _compute_statistics(sol_vec)
     total_traj = sum(weights)
 
     T = length(summaries[1].u)
-    mean = similar(summaries[1].u)
-    var = similar(summaries[1].v)
+    mean = Vector{typeof(summaries[1].u[1])}(undef, T)
+    var = Vector{typeof(summaries[1].v[1])}(undef, T)
 
     for t_idx in 1:T
         # Weighted mean across GPUs

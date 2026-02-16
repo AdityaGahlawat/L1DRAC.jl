@@ -235,7 +235,7 @@ state_logs = state_logging(
 ```
 
 - **`system_dimensions`** — The `sys_dims` struct from setup (contains `n`, `m`, `d`)
-- **`sol_nominal`**, **`sol_true`**, **`sol_L1`** — Keyword arguments; only pass the solutions you simulated
+- **`sol_nominal`**, **`sol_true`**, **`sol_L1`** — Keyword arguments (default `nothing`); unsimulated systems are skipped automatically
 - **`path`** — Output directory (default `"sol_logs/"`, created automatically if it doesn't exist)
 - **Returns** — Named tuple of file paths: `(nominal=..., true_sys=..., L1=...)`
 - **File names** — `states_nominal.jld2`, `states_true.jld2`, `states_L1.jld2`
