@@ -106,6 +106,16 @@ function main(; Ntraj = Int(1e1), max_GPUs=10,
 end
 
 
+###################################################################
+## DATA LOGGING
+###################################################################
+function log_state_results(setup, solutions; path="sol_logs/")
+    state_logging(setup.system_dimensions;
+        sol_nominal=solutions.nominal_sol,
+        sol_true=solutions.true_sol,
+        sol_L1=solutions.L1_sol,
+        path=path)
+end
 
 
 ###################################################################
