@@ -81,7 +81,8 @@ function setup_system(; Ntraj=10) # Ntraj = number of trajectories for ensemble 
         simulation_parameters = simulation_parameters,
         nominal_system = nominal_system,
         true_system = true_system,
-        L1params = L1params
+        L1params = L1params,
+        system_dimensions = system_dimensions
     )
 end
 
@@ -101,10 +102,20 @@ function main(; Ntraj = Int(1e1), max_GPUs=10,
     println("=====================================")
     setup = setup_system(; Ntraj = Ntraj)
     solutions = run_simulations(setup; max_GPUs=max_GPUs, systems=systems)
-    return solutions
+    return setup, solutions
 end
 
 
+###################################################################
+## DATA LOGGING
+###################################################################
+function log_state_results(setup, solutions; path=joinpath(@__DIR__, "sol_logs"))
+    state_logging(setup.system_dimensions;
+        sol_nominal=solutions.nominal_sol,
+        sol_true=solutions.true_sol,
+        sol_L1=solutions.L1_sol,
+        path=path)
+end
 
 
 ###################################################################

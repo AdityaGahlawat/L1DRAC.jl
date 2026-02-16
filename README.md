@@ -12,6 +12,7 @@
 - [Project Structure](#project-structure)
 - [Benchmarks](#benchmarks)
 - [Example](#example)
+- [Saving Data](#saving-data)
 - [TODO](#todo)
 
 ### Description
@@ -54,6 +55,7 @@ L1DRAC/
 │   ├── L1DRAC.jl           # Main module
 │   ├── types.jl            # Type definitions
 │   ├── auxiliary.jl        # Backend selection & cleanup functions
+│   ├── data_logging.jl     # State logging to JLD2 files
 │   ├── run_simulations.jl  # High-level simulation runner
 │   ├── nominal_system.jl   # NominalSystem simulation (CPU + GPU)
 │   ├── true_system.jl      # TrueSystem simulation (CPU + GPU)
@@ -208,6 +210,63 @@ end
 - Solutions returned for each system are 
     - `Vector{<:RODESolution}` for a single trajectory
     - `Vector{<:EnsembleSolution}` with `length = N`, `N = 1` when using CPU or single GPU, and `N = # of GPUs` used
+
+### Saving Data
+
+Save simulation data to JLD2 files for post-processing and plotting.
+
+#### Saving
+
+After running simulations, call `state_logging` to save results:
+
+```julia
+# After running simulations
+setup = setup_system(; Ntraj=1000)
+solutions = run_simulations(setup; max_GPUs=1, systems=[:nominal_sys, :true_sys, :L1_sys])
+
+# Save simulation data to JLD2 files
+state_logs = state_logging(
+    setup.system_dimensions;
+    sol_nominal = solutions.nominal_sol,
+    sol_true = solutions.true_sol,
+    sol_L1 = solutions.L1_sol,
+    path = "sol_logs/"
+)
+```
+
+- **`system_dimensions`** — The `sys_dims` struct from setup (contains `n`, `m`, `d`)
+- **`sol_nominal`**, **`sol_true`**, **`sol_L1`** — Keyword arguments (default `nothing`); unsimulated systems are skipped automatically
+- **`path`** — Output directory (default `"sol_logs/"`, created automatically if it doesn't exist)
+- **Returns** — Named tuple of file paths: `(nominal=..., true_sys=..., L1=...)`
+- **File names** — `states_nominal.jld2`, `states_true.jld2`, `states_L1.jld2`
+
+#### File Structure
+
+All three file types (nominal, true, L1) have identical structure:
+
+| Field | Description | Shape |
+|-------|-------------|-------|
+| `t` | Time points | `Vector`, length T |
+| `u` | Raw trajectories | `Vector{Vector{SVector{n}}}`, Ntraj trajectories x T time steps |
+| `mean` | Mean state per time point | `Vector{SVector{n}}`, length T |
+| `var` | Variance per time point | `Vector{SVector{n}}`, length T |
+
+- Mean and variance are pre-computed at save time from `EnsembleSummary` -- no need to recompute when loading
+- For L1: only the physical state X (first `n` components) is saved, NOT the extended state `[X, Xhat, Xfilter, Lambda_hat]`. Extraction is handled automatically by `state_logging`
+- Multi-GPU solutions are automatically combined before saving (using pooled variance formula for statistics)
+- Element types depend on backend: `Float32` for GPU, `Float64` for CPU
+
+#### Loading
+
+```julia
+using JLD2
+
+data = load("sol_logs/states_nominal.jld2")
+t = data["t"]
+u = data["u"]
+mean_vals = data["mean"]
+var_vals = data["var"]
+```
 
 ![STALE](archive/ex1_old/Ex1plot.png)
 
