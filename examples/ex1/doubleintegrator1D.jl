@@ -7,6 +7,7 @@ using Distributions
 using ControlSystemsBase
 using StaticArrays
 using Plots
+using JLD2
 
 ###################################################################
 ## SYSTEM SETUP
@@ -50,19 +51,19 @@ function setup_system(; Ntraj=10) # Ntraj = number of trajectories for ensemble 
 
     # Uncertain Vector Fields
     Λμ_um(t, x, dp) = 1e-2 * (1 + sin(x[1]))
-    Λμ_m(t, x, dp) = 1.0 * (5 + 10*cos(x[2]) + 5*norm(x))
+    Λμ_m(t, x, dp) = 3.0 * (5 + 10*cos(x[2]) + 5*norm(x))
     Λμ(t, x, dp) = @SVector [Λμ_um(t, x, dp), Λμ_m(t, x, dp)]
 
-    Λσ_um(t, x, dp) = 0.0 * @SMatrix [0.1+cos(x[2]) 2.0]
-    Λσ_m(t, x, dp) = @SMatrix [0.0 5+sin(x[2])+
+    Λσ_um(t, x, dp) = 1e-1 * @SMatrix [0.1+cos(x[2]) 2.0]
+    Λσ_m(t, x, dp) = 6 * @SMatrix [0.0 5+sin(x[2])+
                         5.0*(norm(x) < 1 ? norm(x) : sqrt(norm(x)))]
     Λσ(t, x, dp) = vcat(Λσ_um(t, x, dp), Λσ_m(t, x, dp))
 
     uncertain_components = uncertain_vector_fields(Λμ, Λσ)
 
     # Initial Distributions
-    nominal_ξ₀ = MvNormal(1e-2 * ones(2), 1.0 * I(2))
-    true_ξ₀ = MvNormal(-1.0 * ones(2), 1e-1 * I(2))
+    nominal_ξ₀ = MvNormal(20.0 * ones(2), 1e2 * I(2))
+    true_ξ₀ = MvNormal(-2.0 * ones(2), 1e1 * I(2))
     initial_distributions = init_dist(nominal_ξ₀, true_ξ₀)
 
     # Define Systems
@@ -121,6 +122,16 @@ end
 ###################################################################
 ## PLOTS
 ###################################################################
-# function plot_results(solutions)
-#     # TODO
-# end
+include("plotting_utils.jl")
+
+function plot_results(; path=joinpath(@__DIR__, "sol_logs"), max_traj=500)
+    nom = load(joinpath(path, "states_nominal.jld2"))
+    tru = load(joinpath(path, "states_true.jld2"))
+    L1  = load(joinpath(path, "states_L1.jld2"))
+
+    p1 = build_trajectory_panel(nom, tru, L1; state_component=1, max_traj=max_traj, title_str=L"X_1")
+
+    savefig(p1, joinpath(@__DIR__, "test_X1.png"))
+    @info "Saved test_X1.png"
+    return p1
+end

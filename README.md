@@ -282,8 +282,9 @@ var_vals = data["var"]
 - warmup with flag `warmup=:true`
 - Sharper bounds computation
 - Manually serialize batches for required mem > available mem on GPUs
-- Add ```struct``` wrappers to auto extend necessary function signatures to the complete ```(t,x,dynamics_params)``` for GPU computation. 
+- Add ```struct``` wrappers to auto extend necessary function signatures to the complete ```(t,x,dynamics_params)``` for GPU computation.
     - E.g, ```g(t) -> g(t,x,dynamics_params)```.
+- Performance: `state_logging` / `log_state_results` is very slow — investigate bottleneck (EnsembleSummary? solution processing?)
 
 ---
 
