@@ -130,8 +130,10 @@ function plot_results(; path=joinpath(@__DIR__, "sol_logs"), max_traj=500)
     L1  = load(joinpath(path, "states_L1.jld2"))
 
     p1 = build_trajectory_panel(nom, tru, L1; state_component=1, max_traj=max_traj, title_str=L"X_1")
+    p3 = build_summary_panel(nom, tru, L1; state_component=1, title_str=L"X_1")
 
     savefig(p1, joinpath(@__DIR__, "test_X1.png"))
-    @info "Saved test_X1.png"
-    return p1
+    savefig(p3, joinpath(@__DIR__, "test_summary_X1.png"))
+    @info "Saved test_X1.png and test_summary_X1.png"
+    return p1, p3
 end

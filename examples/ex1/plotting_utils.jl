@@ -37,3 +37,26 @@ function build_trajectory_panel(nom, tru, L1; state_component::Int, max_traj=500
     plot!(p, title=title_str)
     return p
 end
+
+# build_summary_panel: Plot ensemble mean with variance ribbon for one state component
+# Same data access pattern as build_trajectory_panel — Dict from JLD2 load().
+# data["mean"] is Vector{SVector{2,Float64}} length T — getindex extracts scalar component.
+# data["var"] stores VARIANCE — sqrt gives std dev for ribbon half-width (mean ± 1 std dev).
+function build_summary_panel(nom, tru, L1; state_component::Int,
+                              lw=1, fillalpha=0.2, title_str="")
+    nom_mean = getindex.(nom["mean"], state_component)
+    nom_std  = sqrt.(getindex.(nom["var"], state_component))
+
+    tru_mean = getindex.(tru["mean"], state_component)
+    tru_std  = sqrt.(getindex.(tru["var"], state_component))
+
+    L1_mean = getindex.(L1["mean"], state_component)
+    L1_std  = sqrt.(getindex.(L1["var"], state_component))
+
+    p = plot(nom["t"], nom_mean, ribbon=nom_std, color=13, lw=lw, fillalpha=fillalpha, label=false)
+    plot!(p, tru["t"], tru_mean, ribbon=tru_std, color=7,  lw=lw, fillalpha=fillalpha, label=false)
+    plot!(p, L1["t"],  L1_mean,  ribbon=L1_std,  color=25, lw=lw, fillalpha=fillalpha, label=false)
+
+    plot!(p, xlabel="t", title=title_str)
+    return p
+end
