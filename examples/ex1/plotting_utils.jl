@@ -60,3 +60,19 @@ function build_summary_panel(nom, tru, L1; state_component::Int,
     plot!(p, xlabel="t", title=title_str)
     return p
 end
+
+# plot_results: Main entry point — build 2x2 state trajectory figure
+# Top row: individual trajectories (X1 left, X2 right)
+# Bottom row: ensemble summary with mean + variance ribbon (X1 left, X2 right)
+# Assembled into 2x2 grid via @layout, size 900x900.
+function plot_results(nom, tru, L1; max_traj=500)
+    p1 = build_trajectory_panel(nom, tru, L1; state_component=1,
+             max_traj=max_traj, title_str=L"X_1")
+    p2 = build_trajectory_panel(nom, tru, L1; state_component=2,
+             max_traj=max_traj, title_str=L"X_2")
+    p3 = build_summary_panel(nom, tru, L1; state_component=1)
+    p4 = build_summary_panel(nom, tru, L1; state_component=2)
+
+    l = @layout [a b; c d]
+    return plot(p1, p2, p3, p4, layout=l, size=(900, 900))
+end
