@@ -80,7 +80,7 @@ function simplot(sol::EnsembleSolution; xlabelstring::LaTeXString, ylabelstring:
 	return mainplot
 end
 # comparison of systems, Ensemble
-function simplot(sol1::EnsembleSolution, sol2::EnsembleSolution; labelstring1::LaTeXString, labelstring2::LaTeXString)
+function simplot(sol1::EnsembleSolution, sol2::EnsembleSolution; labelstring1::LaTeXString, labelstring2::LaTeXString)I'm confused, I thought 
     lw = 1.5 # linewidth
 	lα = 0.1 # linealpha
 	l = @layout [a; b]
