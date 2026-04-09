@@ -164,10 +164,15 @@ function setup_system(; Ntraj=10) # Ntraj = number of trajectories for ensemble 
         simulation_parameters = simulation_parameters,
         nominal_system = nominal_system,
         true_system = true_system,
-        L1params = L1params
+        L1params = L1params,
+        system_dimensions = system_dimensions
     )
 end
 ```
+- ### System Dimensions
+    - **`system_dimensions`** — The `sys_dims` struct from setup (contains `n`, `m`, `d`)
+    - **`sol_nominal`**, **`sol_true`**, **`sol_L1`** — Keyword arguments (default `nothing`); unsimulated systems are skipped automatically
+
 - ### Number of trajectories
     - `Ntraj = Int(#)` 
     - If `Ntraj > 1`, then `src/run_simulations.jl` auto selects `simtype = :ensemble` 
@@ -199,10 +204,14 @@ end
         println("=====================================")
         setup = setup_system(; Ntraj = Ntraj)
         solutions = run_simulations(setup; max_GPUs=max_GPUs, systems=systems)
-        return solutions, systems
+        return setup, solutions
     end
 
-    setup, (nominal_sol, true_sol, L1_sol) = main();
+    ###################################################################
+    ## SOLVING
+    ###################################################################
+    setup, solutions = main();
+    nominal_sol, true_sol, L1_sol = solutions;
 ```
 ### Notes: 
 - `Warmup` for JIT compilaaion
@@ -213,29 +222,23 @@ end
 
 ### Saving Data
 
-Save simulation data to JLD2 files for post-processing and plotting.
-
-#### Saving
-
-After running simulations, call `state_logging` to save results:
+Save simulation data to JLD2 files for post-processing and plotting. In this example we use the wrapper `log_state_results` to call package's `state_logging` function 
 
 ```julia
-# After running simulations
-setup = setup_system(; Ntraj=1000)
-solutions = run_simulations(setup; max_GPUs=1, systems=[:nominal_sys, :true_sys, :L1_sys])
+# Wrapper
+function log_state_results(setup, solutions; path=joinpath(@__DIR__, "sol_logs"))
+    state_logging(setup.system_dimensions;
+        sol_nominal=solutions.nominal_sol,
+        sol_true=solutions.true_sol,
+        sol_L1=solutions.L1_sol,
+        path=path)
+end
 
 # Save simulation data to JLD2 files
-state_logs = state_logging(
-    setup.system_dimensions;
-    sol_nominal = solutions.nominal_sol,
-    sol_true = solutions.true_sol,
-    sol_L1 = solutions.L1_sol,
-    path = "sol_logs/"
-)
+log_state_results(setup, solutions)
 ```
 
-- **`system_dimensions`** — The `sys_dims` struct from setup (contains `n`, `m`, `d`)
-- **`sol_nominal`**, **`sol_true`**, **`sol_L1`** — Keyword arguments (default `nothing`); unsimulated systems are skipped automatically
+
 - **`path`** — Output directory (default `"sol_logs/"`, created automatically if it doesn't exist)
 - **Returns** — Named tuple of file paths: `(nominal=..., true_sys=..., L1=...)`
 - **File names** — `states_nominal.jld2`, `states_true.jld2`, `states_L1.jld2`
