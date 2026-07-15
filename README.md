@@ -274,6 +274,11 @@ var_vals = data["var"]
 ![STALE](archive/ex1_old/Ex1plot.png)
 
 ## TODO
+- Convert example to Jupyter notebook (within vscode, which should also yield a separate notebook)
+    - Can use markdown to explain the example and code cells to run it
+- Solution handling for multi GPU to recombine solutions into a single `EnsembleSolution` instead of deconstructing each and combining them, in arrays
+    - It is tedious 
+    - More importantly, we can not use utilities like `EnsembleSummary` and plotting functions on the combined solution, which is a major limitation
 - Add explanation of solution vector for L1 = `[x, xhat, Lambda_hat, Filter-state]`
 - Cleanup for registration with @JuliaRegistrator
 - Parallelized plot utilities (multithreading loops/?)
