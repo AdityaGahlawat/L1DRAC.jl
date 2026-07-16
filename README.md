@@ -276,6 +276,7 @@ var_vals = data["var"]
 ## TODO
 - Convert example to Jupyter notebook (within vscode, which should also yield a separate notebook)
     - Can use markdown to explain the example and code cells to run it
+- Python FRONT END: research and see if there is a viable solution
 - Solution handling for multi GPU to recombine solutions into a single `EnsembleSolution` instead of deconstructing each and combining them, in arrays
     - It is tedious 
     - More importantly, we can not use utilities like `EnsembleSummary` and plotting functions on the combined solution, which is a major limitation
