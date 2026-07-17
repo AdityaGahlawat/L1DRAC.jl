@@ -8,6 +8,7 @@ using ControlSystemsBase
 using StaticArrays
 using Plots
 using JLD2
+using DependencyAtlas
 
 ###################################################################
 ## SYSTEM SETUP
