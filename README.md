@@ -68,6 +68,29 @@ L1DRAC/
 └── README.md
 ```
 
+### Visualize the Code Structure
+
+Explore the package as an interactive dependency graph — which function calls which, across all files — using [DependencyAtlas.jl](https://codeberg.org/karei/DependencyAtlas.jl).
+
+In the Julia REPL (your own environment):
+
+```julia
+julia> ] add DependencyAtlas
+
+julia> using L1DRAC, DependencyAtlas
+
+julia> pkgdir(L1DRAC)          # copy this path — you will paste it in the browser
+
+julia> DependencyAtlas.serve(static=true, static_root=joinpath(pkgdir(DependencyAtlas), "dist"))
+```
+
+<!-- static_root works around a DependencyAtlas 1.0.0 bug: serve(static=true) defaults to a non-existent src/dist and serves a blank page. Drop the argument once fixed upstream. -->
+This REPL now runs the tool — leave it open. Open <http://127.0.0.1:8099> in a browser:
+
+1. In the **Analysis Task** tab (right drawer), set **Analysis Path** to the path you copied and click **Run Analysis**. To map a single script instead (e.g. an example), set the script as **Analysis Path** and the package folder as **Project Root**.
+2. **Click** a function node — highlights everything connected to it. **Click it again** — shows only its call paths (reachability mode; depth and direction adjustable in the Graph Explorer panel).
+3. **Right-click** a node — opens its definition in your editor at the exact line.
+
 ### Benchmarks
 
 ![](benchmark/benchmark_results.png)
@@ -274,22 +297,31 @@ var_vals = data["var"]
 ![STALE](archive/ex1_old/Ex1plot.png)
 
 ## TODO
-- Add explanation of solution vector for L1 = `[x, xhat, Lambda_hat, Filter-state]`
-- Cleanup for registration with @JuliaRegistrator
-- Parallelized plot utilities (multithreading loops/?)
-- Control logging 
+
+- Solution handling for multi GPU to recombine solutions into a single `EnsembleSolution` instead of deconstructing each and combining them, in arrays
+    - It is tedious 
+    - More importantly, we can not use utilities like `EnsembleSummary` and plotting functions on the combined solution, which is a major limitation
+- Extraction of the L1 solution `x` ENSEMBLE from the extended state vector `[X, Xhat, Xfilter, Lambda_hat]` 
+    - Add explanation of solution vector for L1 = `[x, xhat, Lambda_hat, Filter-state]`
+- Control logging, will need to also create ensemble sol objects for each of these 
     - Baseline 
     - L1
     - Total
+- Parallelized plot utilities (multithreading loops/?)
+- Convert example to Jupyter notebook (within vscode, which should also yield a separate notebook)
+    - Can use markdown to explain the example and code cells to run it
+- Python FRONT END: research and see if there is a viable solution
+
+
+### Deferred TODOs
+
+- Cleanup for registration with @JuliaRegistrator
 - Parallelized empirical distributions
 - warmup with flag `warmup=:true`
-- Sharper bounds computation
-- Manually serialize batches for required mem > available mem on GPUs
+- Sharper bounds computation (empirically)
 - Add ```struct``` wrappers to auto extend necessary function signatures to the complete ```(t,x,dynamics_params)``` for GPU computation.
     - E.g, ```g(t) -> g(t,x,dynamics_params)```.
-- Performance: `state_logging` / `log_state_results` is very slow — investigate bottleneck (EnsembleSummary? solution processing?)
-- Data logging fails if `:systems` is not chosen to include all 3 systems. It cannot handle `nothing` type for systems not simulated
-- **Python frontend**
+
 
 ---
 
