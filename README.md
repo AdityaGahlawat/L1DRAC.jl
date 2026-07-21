@@ -309,11 +309,11 @@ var_vals = data["var"]
     - Baseline 
     - L1
     - Total
-- Parallelized plot utilities (multithreading loops/?)
-- Convert example to Jupyter notebook (within vscode, which should also yield a separate notebook)
+- **Convert example to Jupyter notebook** (within vscode, which should also yield a separate notebook)
     - Can use markdown to explain the example and code cells to run it
+    - Embed the notebook in README if it can be done. Also then auto updates. 
 - Python FRONT END: research and see if there is a viable solution
-
+- Parallelized plot utilities (multithreading loops/?)
 
 ### Deferred TODOs
 
