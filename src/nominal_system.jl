@@ -105,7 +105,7 @@ function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::N
 end
 
 # Inner Private Method 2: Multi-GPU - calls _nominal_gpu_solve_kernel in each @async
-# Returns Vector{EnsembleSolution} (one per GPU)
+# Returns a single merged EnsembleSolution (per-GPU solutions concatenated at source)
 function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::NominalSystem,
                                         ::Val{n_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, d_gpu}
     @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
@@ -132,7 +132,7 @@ function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::N
 
     solutions = Vector{Any}(undef, numGPUs)
 
-    @sync begin
+    elapsed = @elapsed @sync begin
         for gpu_id in 0:(numGPUs-1)
             @async begin
                 CUDA.device!(gpu_id)
@@ -148,7 +148,14 @@ function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::N
     end
 
     @info "Multi-GPU complete" num_solutions=numGPUs trajectories_per_gpu=length.(solutions)
-    return solutions
+
+    # Merge per-GPU solutions into ONE EnsembleSolution (upstream-faithful):
+    # map(identity, .) = upstream tighten_container_eltype for the Vector{Any} accumulator; the 4-arg
+    # ctor fires the specialized SDE ctor (SciMLBase ensemble_solutions.jl:50-69) -> type params IDENTICAL
+    # to a native single-solve. Metadata = DiffEqGPU multi-batch path: elapsed=parallel wall clock, converged=true, stats=nothing.
+    merged_u = map(identity, reduce(vcat, [s.u for s in solutions]))
+    merged = EnsembleSolution(merged_u, elapsed, true, nothing)
+    return merged
 end
 
 #= OLD Distributed.jl Multi-GPU Method (commented out - see v1.1.0-GPU-parallel-PMAP)
