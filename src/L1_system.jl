@@ -97,7 +97,7 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
                       saveat = Δ_saveat)
     end
     @info "Done"
-    return [L1_sol]
+    return L1_sol
 end
 
 # Method 2: GPU - dispatches to inner private methods for single/multi GPU
@@ -212,7 +212,7 @@ function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSyste
                                               ω, Tₛ, λₛ,
                                               Val(n_gpu), Val(m_gpu), Val(d_gpu))
     @info "Done"
-    return [L1_sol]
+    return L1_sol
 end
 
 # Inner Private Method 2: Multi-GPU - calls _L1_gpu_solve_kernel in each @async

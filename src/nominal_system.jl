@@ -50,7 +50,7 @@ function system_simulation(simulation_parameters::SimParams, nominal_system::Nom
         nominal_sol = solve(nominal_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     end
     @info "Done"
-    return [nominal_sol]
+    return nominal_sol
 end
 
 # Method 2: GPU - dispatches to inner private methods for single/multi GPU
@@ -101,7 +101,7 @@ function _system_simulation_nominal_gpu(simulation_parameters, nominal_system::N
     @CUDA.time nominal_sol = _nominal_gpu_solve_kernel(tspan, Δₜ, Ntraj, Δ_saveat, nominal_ξ₀, f, p, dynamics_params,
                                                        Val(n_gpu), Val(d_gpu))
     @info "Done"
-    return [nominal_sol]
+    return nominal_sol
 end
 
 # Inner Private Method 2: Multi-GPU - calls _nominal_gpu_solve_kernel in each @async

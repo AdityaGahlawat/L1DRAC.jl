@@ -72,7 +72,7 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
         true_sol = solve(true_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     end
     @info "Done"
-    return [true_sol]
+    return true_sol
 end
 
 # Method 2: GPU - dispatches to inner private methods for single/multi GPU
@@ -124,7 +124,7 @@ function _system_simulation_true_gpu(simulation_parameters, true_system::TrueSys
     @CUDA.time true_sol = _true_gpu_solve_kernel(tspan, Δₜ, Ntraj, Δ_saveat, true_ξ₀, f, p, Λμ, Λσ, dynamics_params,
                                                   Val(n_gpu), Val(d_gpu))
     @info "Done"
-    return [true_sol]
+    return true_sol
 end
 
 # Inner Private Method 2: Multi-GPU - calls _true_gpu_solve_kernel in each @async
