@@ -72,7 +72,7 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
         true_sol = solve(true_problem, EM(), dt=Δₜ, progress = true, progress_steps = prog_steps, saveat = Δ_saveat)
     end
     @info "Done"
-    return [true_sol]
+    return true_sol
 end
 
 # Method 2: GPU - dispatches to inner private methods for single/multi GPU
@@ -124,11 +124,11 @@ function _system_simulation_true_gpu(simulation_parameters, true_system::TrueSys
     @CUDA.time true_sol = _true_gpu_solve_kernel(tspan, Δₜ, Ntraj, Δ_saveat, true_ξ₀, f, p, Λμ, Λσ, dynamics_params,
                                                   Val(n_gpu), Val(d_gpu))
     @info "Done"
-    return [true_sol]
+    return true_sol
 end
 
 # Inner Private Method 2: Multi-GPU - calls _true_gpu_solve_kernel in each @async
-# Returns Vector{EnsembleSolution} (one per GPU)
+# Returns a single merged EnsembleSolution (one native-typed object, not a Vector per GPU)
 function _system_simulation_true_gpu(simulation_parameters, true_system::TrueSystem,
                                      ::Val{n_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, d_gpu}
     @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
@@ -156,7 +156,7 @@ function _system_simulation_true_gpu(simulation_parameters, true_system::TrueSys
 
     solutions = Vector{Any}(undef, numGPUs)
 
-    @sync begin
+    elapsed = @elapsed @sync begin
         for gpu_id in 0:(numGPUs-1)
             @async begin
                 CUDA.device!(gpu_id)
@@ -172,5 +172,13 @@ function _system_simulation_true_gpu(simulation_parameters, true_system::TrueSys
     end
 
     @info "Multi-GPU complete" num_solutions=numGPUs trajectories_per_gpu=length.(solutions)
-    return solutions
+
+    # Merge per-GPU EnsembleSolutions into ONE native-typed EnsembleSolution.
+    # map(identity, .) is the upstream tighten_container_eltype for the Vector{Any}-derived accumulator;
+    # the 4-arg constructor fires the specialized SDE ctor (SciMLBase ensemble_solutions.jl:50-69), so the
+    # merged object has IDENTICAL {T,N,S} type parameters to a native single-solve. Metadata matches what
+    # DiffEqGPU sets on its own multi-batch path: elapsedTime = parallel-section wall clock, converged = true, stats = nothing.
+    merged_u = map(identity, reduce(vcat, [s.u for s in solutions]))
+    merged = EnsembleSolution(merged_u, elapsed, true, nothing)
+    return merged
 end

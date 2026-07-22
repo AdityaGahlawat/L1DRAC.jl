@@ -97,7 +97,7 @@ function system_simulation(simulation_parameters::SimParams, true_system::TrueSy
                       saveat = Δ_saveat)
     end
     @info "Done"
-    return [L1_sol]
+    return L1_sol
 end
 
 # Method 2: GPU - dispatches to inner private methods for single/multi GPU
@@ -212,11 +212,11 @@ function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSyste
                                               ω, Tₛ, λₛ,
                                               Val(n_gpu), Val(m_gpu), Val(d_gpu))
     @info "Done"
-    return [L1_sol]
+    return L1_sol
 end
 
 # Inner Private Method 2: Multi-GPU - calls _L1_gpu_solve_kernel in each @async
-# Returns Vector{EnsembleSolution} (one per GPU)
+# Returns a single merged EnsembleSolution (all per-GPU trajectories concatenated)
 function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSystem, L1params::L1DRACParams,
                                    ::Val{n_gpu}, ::Val{m_gpu}, ::Val{d_gpu}, numGPUs::Int) where {n_gpu, m_gpu, d_gpu}
     @unpack tspan, Δₜ, Ntraj, Δ_saveat = simulation_parameters
@@ -245,7 +245,7 @@ function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSyste
 
     solutions = Vector{Any}(undef, numGPUs)
 
-    @sync begin
+    elapsed = @elapsed @sync begin
         for gpu_id in 0:(numGPUs-1)
             @async begin
                 CUDA.device!(gpu_id)
@@ -263,5 +263,13 @@ function _system_simulation_L1_gpu(simulation_parameters, true_system::TrueSyste
     end
 
     @info "Multi-GPU complete" num_solutions=numGPUs trajectories_per_gpu=length.(solutions)
-    return solutions
+
+    # Merge per-GPU EnsembleSolutions into ONE, upstream-faithful:
+    # map(identity, .) is upstream's tighten_container_eltype for the Vector{Any}-derived accumulator;
+    # the 4-arg call fires the specialized SDE ctor (SciMLBase ensemble_solutions.jl:50-69), so the merged
+    # object has type parameters IDENTICAL to a native single-solve. Metadata matches DiffEqGPU's own
+    # multi-batch path: elapsedTime = parallel-section wall clock, converged = true, stats = nothing.
+    merged_u = map(identity, reduce(vcat, [s.u for s in solutions]))
+    merged = EnsembleSolution(merged_u, elapsed, true, nothing)
+    return merged
 end

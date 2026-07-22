@@ -35,6 +35,7 @@ export run_simulations
 
 # Data logging
 export state_logging
+export load_ensemble
 
 # Types for solutions, needed for multiple dispatch plot functions
 export RODESolution
