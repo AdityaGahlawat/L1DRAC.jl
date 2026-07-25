@@ -72,6 +72,8 @@ L1DRAC/
 
 Explore the package as an interactive dependency graph — which function calls which, across all files — using [DependencyAtlas.jl](https://codeberg.org/karei/DependencyAtlas.jl).
 
+For the companion view with the routing conditions written on the arrows — one flowchart per `src/` file, including how multiple dispatch picks each method — see [docs/CALL-FLOWS.md](docs/CALL-FLOWS.md).
+
 In the Julia REPL (your own environment):
 
 ```julia
