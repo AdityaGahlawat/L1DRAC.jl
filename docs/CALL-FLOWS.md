@@ -170,17 +170,19 @@ flowchart TD
 %%{init: {"theme":"base","flowchart":{"useMaxWidth":false,"htmlLabels":true,"wrappingWidth":3000,"nodeSpacing":55,"rankSpacing":70},"themeVariables":{"background":"#0d1117","mainBkg":"#1c3d5a","primaryColor":"#1c3d5a","primaryTextColor":"#ffffff","primaryBorderColor":"#63b3ed","lineColor":"#ffffff","textColor":"#ffffff","edgeLabelBackground":"#182430","clusterBkg":"#11161d","clusterBorder":"#3a4a5a","tertiaryColor":"#11161d","secondaryColor":"#243b53"}}}%%
 flowchart TD
   subgraph SLG["state_logging"]
-    SL["state_logging( system_dimensions; sol_nominal, sol_true, sol_L1, path )"]
-    SLN["_process_solution( sol_nominal )"]
-    SLT["_process_solution( sol_true )"]
-    SLL["_process_solution_L1( sol_L1, system_dimensions )"]
+    SL["state_logging( solutions; systems, path )"]
+    SLE(["error: invalid or empty systems list"])
+    SLN["_process_solution( solutions.nominal_sol )"]
+    SLT["_process_solution( solutions.true_sol )"]
+    SLL["_process_solution_L1( solutions.L1_sol )"]
     JN["jldsave states_nominal.jld2 with keys t and u"]
     JT["jldsave states_true.jld2 with keys t and u"]
     JL["jldsave states_L1.jld2 with keys t and u"]
     SLR["return ( nominal, true_sys, L1 ) file paths"]
-    SL -->|"sol_nominal provided"| SLN --> JN --> SLR
-    SL -->|"sol_true provided"| SLT --> JT --> SLR
-    SL -->|"sol_L1 provided"| SLL --> JL --> SLR
+    SL -->|"bad systems list"| SLE
+    SL -->|":nominal_sys requested"| SLN --> JN --> SLR
+    SL -->|":true_sys requested"| SLT --> JT --> SLR
+    SL -->|":L1_sys requested"| SLL --> JL --> SLR
   end
 
   subgraph LEG["load_ensemble"]
@@ -211,7 +213,7 @@ flowchart TD
   end
 ```
 
-- `state_logging` is called on the NamedTuple that `run_simulations` returns. Each solution is saved only if it was provided (non-`nothing`). Nominal and true solutions go through `_process_solution`; the L1 solution goes through `_process_solution_L1`, which saves the full extended state (length `3n + m`) verbatim. Every file uses the same two-key `{t, u}` schema.
+- `state_logging` takes the NamedTuple that `run_simulations` returns, plus a `systems` list of the same Symbols `run_simulations` uses (default: all three). A system is saved only when it is both requested in `systems` and present (non-`nothing`); an invalid or empty `systems` list errors loudly, mirroring `run_simulations`. Nominal and true solutions go through `_process_solution`; the L1 solution goes through `_process_solution_L1`, which saves the full extended state (length `3n + m`) verbatim. Every file uses the same two-key `{t, u}` schema.
 - `load_ensemble` reads such a file back into a genuine `EnsembleSolution` with no re-simulation. With no `component`, the file loads verbatim: nominal and true as saved, an L1 file on its full extended state. With a `component`, the three guards run before the slice — each errors loudly.
 - The four L1-only selectors and the blocks of `Z = [X, Xhat, Xfilter, Λhat]` they address: `:L1_sys_states → X`, `:L1_predictor → Xhat`, `:L1_filter → Xfilter`, `:L1_adaptive_estimate → Λhat`.
 

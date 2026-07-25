@@ -247,24 +247,20 @@ end
 
 ### Saving Data
 
-Save simulation data to JLD2 files for post-processing and plotting. In this example we use the wrapper `log_state_results` to call package's `state_logging` function 
+Save simulation data to JLD2 files for post-processing and plotting — one direct call to the package's `state_logging` function after a run:
 
 ```julia
-# Wrapper
-function log_state_results(setup, solutions; path=joinpath(@__DIR__, "sol_logs"))
-    state_logging(setup.system_dimensions;
-        sol_nominal=solutions.nominal_sol,
-        sol_true=solutions.true_sol,
-        sol_L1=solutions.L1_sol,
-        path=path)
-end
+setup, sols = main(Ntraj=1000)
 
-# Save simulation data to JLD2 files
-log_state_results(setup, solutions)
+# Save all three systems
+state_logging(sols; path="sol_logs/")
+
+# Or save a subset — same Symbols as run_simulations
+state_logging(sols; systems=[:L1_sys], path="sol_logs/")
 ```
 
-
-- **`path`** — Output directory (default `"sol_logs/"`, created automatically if it doesn't exist)
+- **`systems`** — which systems to save (default: all three): `:nominal_sys`, `:true_sys`, `:L1_sys`
+- **`path`** — Output directory (default `"sol_logs/"` in the folder Julia was launched from; created automatically if it doesn't exist)
 - **Returns** — Named tuple of file paths: `(nominal=..., true_sys=..., L1=...)`
 - **File names** — `states_nominal.jld2`, `states_true.jld2`, `states_L1.jld2`
 
@@ -310,11 +306,12 @@ var_vals = data["var"]
 - Control logging, will need to also create ensemble sol objects for each of these 
     - Baseline 
     - L1
-    - Total
+    - TotalThe 
 - **Convert example to Jupyter notebook** (within vscode, which should also yield a separate notebook)
     - Can use markdown to explain the example and code cells to run it
     - Embed the notebook in README if it can be done. Also then auto updates. 
 - Python FRONT END: research and see if there is a viable solution
+- IMPORTANCE SAMPLING
 - Parallelized plot utilities (multithreading loops/?)
 
 ### Deferred TODOs

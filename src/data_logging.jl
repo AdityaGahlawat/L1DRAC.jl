@@ -16,11 +16,11 @@
 #
 # HELPER FUNCTIONS:
 #   _process_solution(sol)             - Process nominal/true into (t, u)
-#   _process_solution_L1(sol, system_dimensions) - Process L1 into (t, u) with full extended state
+#   _process_solution_L1(sol) - Process L1 into (t, u) with full extended state
 #
 # MAIN FUNCTION:
-#   state_logging(system_dimensions; sol_nominal, sol_true, sol_L1, path)
-#     - Saves each non-nothing solution to a JLD2 file holding {t, u}
+#   state_logging(solutions; systems=[:nominal_sys, :true_sys, :L1_sys], path)
+#     - Saves each requested (in `systems`) non-nothing solution to a JLD2 file holding {t, u}
 #     - Returns named tuple of file paths
 #
 # LOAD FUNCTION:
@@ -47,13 +47,11 @@ end
 # _process_solution_L1: Process L1 system solution into (t, u) structure
 # Input: a single EnsembleSolution of extended states [X, Xhat, Xfilter, Λhat] (length 3n+m),
 #        saved verbatim; no slicing and no statistics computed or stored here
-#        system_dimensions (SysDims struct) is retained but unused (see below)
 # Returns: tuple (t, u) for JLD2 saving
 #   - t: time points, shared across trajectories (taken from the first trajectory)
 #   - u: vector of trajectories, each trajectory a vector of full extended state vectors
 # Slice to X (first n components) happens at rebuild time (load_ensemble), not here
-function _process_solution_L1(sol, system_dimensions)
-    # system_dimensions unused: full extended state saved verbatim; slice to X moved to rebuild
+function _process_solution_L1(sol)
     t = sol.u[1].t
     u = [traj.u for traj in sol]
     return (t, u)
@@ -61,17 +59,33 @@ end
 
 
 # state_logging: Save ensemble simulation solutions to JLD2 files
-# Each provided system is saved with the identical two-key {t, u} schema
+# Each saved system is written with the identical two-key {t, u} schema
 #
 # Arguments:
-#   system_dimensions: SysDims struct containing n, m, d
-#   sol_nominal: (kwarg) EnsembleSolution for nominal system
-#   sol_true:    (kwarg) EnsembleSolution for true system
-#   sol_L1:      (kwarg) EnsembleSolution for L1 system (full extended state)
-#   path:        (kwarg) Output directory (created if doesn't exist)
+#   solutions: (positional) the NamedTuple returned by run_simulations, with fields
+#              nominal_sol, true_sol, L1_sol (each an EnsembleSolution or nothing)
+#   systems:   (kwarg) Vector{Symbol} of systems to save; default = all three.
+#              Valid entries: :nominal_sys, :true_sys, :L1_sys.
+#              A system is written only if it is BOTH listed in `systems` AND its
+#              solution field is non-nothing; a nothing field is silently skipped.
+#   path:      (kwarg) Output directory (created if it doesn't exist)
 #
-# Returns named tuple of file paths: (nominal=..., true_sys=..., L1=...)
-function state_logging(system_dimensions; sol_nominal=nothing, sol_true=nothing, sol_L1=nothing, path::String="sol_logs/")
+# Symbol -> field -> file mapping:
+#   :nominal_sys -> solutions.nominal_sol -> states_nominal.jld2 (via _process_solution)
+#   :true_sys    -> solutions.true_sol    -> states_true.jld2    (via _process_solution)
+#   :L1_sys      -> solutions.L1_sol      -> states_L1.jld2      (via _process_solution_L1,
+#                   full extended state saved verbatim)
+#
+# Returns named tuple of file paths: (nominal=..., true_sys=..., L1=...), with
+# nothing in any slot that was not saved.
+function state_logging(solutions; systems::Vector{Symbol}=[:nominal_sys, :true_sys, :L1_sys], path::String="sol_logs/")
+    # Validate systems kwarg (mirrors run_simulations)
+    valid_systems = [:nominal_sys, :true_sys, :L1_sys]
+    for s in systems
+        s ∈ valid_systems || error("Invalid system: $s. Valid options: $valid_systems")
+    end
+    isempty(systems) && error("Must specify at least one system to log")
+
     mkpath(path)
 
     nominal_path = nothing
@@ -79,22 +93,22 @@ function state_logging(system_dimensions; sol_nominal=nothing, sol_true=nothing,
     L1_path = nothing
 
     # Save nominal solution with the {t, u} schema
-    if sol_nominal !== nothing
-        t, u = _process_solution(sol_nominal)
+    if :nominal_sys ∈ systems && solutions.nominal_sol !== nothing
+        t, u = _process_solution(solutions.nominal_sol)
         nominal_path = joinpath(path, "states_nominal.jld2")
         jldsave(nominal_path; t, u)
     end
 
     # Save true system solution with the {t, u} schema
-    if sol_true !== nothing
-        t, u = _process_solution(sol_true)
+    if :true_sys ∈ systems && solutions.true_sol !== nothing
+        t, u = _process_solution(solutions.true_sol)
         true_path = joinpath(path, "states_true.jld2")
         jldsave(true_path; t, u)
     end
 
     # Save L1 solution: full extended state saved verbatim (slice to X deferred to rebuild)
-    if sol_L1 !== nothing
-        t, u = _process_solution_L1(sol_L1, system_dimensions)
+    if :L1_sys ∈ systems && solutions.L1_sol !== nothing
+        t, u = _process_solution_L1(solutions.L1_sol)
         L1_path = joinpath(path, "states_L1.jld2")
         jldsave(L1_path; t, u)
     end
@@ -107,48 +121,31 @@ function state_logging(system_dimensions; sol_nominal=nothing, sol_true=nothing,
 end
 
 
-# load_ensemble: rebuild a toolbox-native EnsembleSolution from a saved {t, u} JLD2 file.
-# Path-B reconstruction (save-design-brief.md 2.2a): each saved trajectory is rebuilt into a
-# genuine per-trajectory SciML solution (build_solution over a stub SDEProblem), so the FULL
-# ensemble toolbox works on the result -- EnsembleSummary (on-grid AND off-grid), every
-# EnsembleAnalysis timestep_*/timepoint_* statistic, and both Plots recipes -- in a fresh
-# session with NO re-simulation. Off-grid queries stay correct because each trajectory is a
-# real SciMLSolution carrying a LinearInterpolation over its own (t, u_i), so an off-grid
-# EnsembleSummary(sim, ts) takes the interpolation branch (length-consistent by construction),
-# never the DiffEqArray silent-corruption branch (brief 2.3).
+# load_ensemble: rebuild a ready-to-use EnsembleSolution from a saved {t, u} JLD2 file.
 #
-# Component selection uses the package Symbol idiom (cf. run_simulations systems=[:nominal_sys,...]):
-# pass a named selector, not a raw range. All four selectors are L1-only and address blocks of
-# the L1 extended state Z = [X, Xhat, Xfilter, Λhat] (length 3n+m, see L1_system.jl):
-#   :L1_sys_states        -> X       (1:n)
-#   :L1_predictor         -> Xhat    (n+1:2n)
-#   :L1_filter            -> Xfilter (2n+1:2n+m)
-#   :L1_adaptive_estimate -> Λhat    (2n+m+1:3n+m)
-# The selector is resolved to a concrete index range ONCE here (not per trajectory), then each
-# state vector is sliced to that range BEFORE its trajectory is built (A3), so the returned
-# ensemble IS the sub-state ensemble and EnsembleSummary runs directly on it. Exotic / arbitrary
-# slices are intentionally NOT supported by this interface -- take them via plain arrays (A3).
+# PRIMARY USE — any saved file (nominal, true, or L1), no keywords:
 #
-# Arguments:
-#   path              : path to a states_*.jld2 file written by state_logging (keys {t, u})
-#   component         : (kwarg) which named L1 state block to rebuild on.
-#                       nothing (default) -> whole file rebuilt verbatim; nominal/true pop out
-#                       as-is, an L1 file pops out on its full extended state.
-#                       one of the four Symbols above -> the L1 file is sliced to that block.
-#   system_dimensions : (kwarg) a SysDims (fields n, m, d); required whenever `component` is
-#                       given, so the selector can be resolved to its index range. Ignored when
-#                       `component` is nothing.
-# Returns: an EnsembleSolution of genuine per-trajectory solutions.
+#   load_ensemble("sol_logs/states_nominal.jld2")   # loaded verbatim
+#                                                   # (an L1 file: full extended state)
 #
-# Guards (all error loudly): an unknown `component`; a `component` given without
-# `system_dimensions`; and an L1 selector applied to a file whose state length != 3n+m (i.e. a
-# nominal/true file), which catches L1 selectors pointed at the wrong file.
+#   Fresh session, no re-simulation — EnsembleSummary, plot, and the ensemble
+#   statistics work directly on the result.
 #
-# In-module name resolution (save-design-brief.md D4, VBI-verified):
-#   load                               - bare, via `using JLD2`
-#   SDEProblem / EM / EnsembleSolution - bare, re-exported by `using DifferentialEquations`
-#   build_solution / LinearInterpolation / ReturnCode - NOT bare in this module; reached as
-#                                        DifferentialEquations.SciMLBase.*
+# OPTIONAL — L1 files only: slice one block of the extended state while loading.
+# Needs system_dimensions, since saved files carry no metadata:
+#
+#   load_ensemble("sol_logs/states_L1.jld2"; component=:L1_predictor, system_dimensions=dims)
+#
+#   :L1_sys_states        → X        (1:n)
+#   :L1_predictor         → Xhat     (n+1:2n)
+#   :L1_filter            → Xfilter  (2n+1:2n+m)
+#   :L1_adaptive_estimate → Λhat     (2n+m+1:3n+m)
+#
+# Guards, each a loud error: unknown component; component without system_dimensions;
+# L1 selector aimed at a nominal/true file (state length != 3n+m).
+#
+# Rebuild detail: every saved trajectory becomes a per-trajectory solution object with
+# linear interpolation over t, so on- and off-grid queries behave like a fresh solve.
 function load_ensemble(path::AbstractString; component=nothing, system_dimensions=nothing)
     data = load(path)
     t = data["t"]
