@@ -270,6 +270,7 @@ function plot_states_vs_time(sol; k=2, δ=0.05, max_traj_plot=500, fname="states
     return fig
 end
 
+## TO BE DEPRECATED 
 include("plotting_utils.jl")
 
 function generate_state_plots(; path=joinpath(@__DIR__, "sol_logs"), max_traj=500)
