@@ -296,14 +296,14 @@ var_vals = data["var"]
 
 ## TODO
 
-- Solution handling for multi GPU to recombine solutions into a single `EnsembleSolution` instead of deconstructing each and combining them, in arrays
-    - It is tedious 
-    - More importantly, we can not use utilities like `EnsembleSummary` and plotting functions on the combined solution, which is a major limitation
-- Extraction of the L1 solution `x` ENSEMBLE from the extended state vector `[X, Xhat, Xfilter, Lambda_hat]` 
-    - Add explanation of solution vector for L1 = `[x, xhat, Lambda_hat, Filter-state]`
+- ~~Solution handling for multi GPU to recombine solutions into a single `EnsembleSolution` instead of deconstructing each and combining them, in arrays~~ (STATUS: Complete)
+    - ~~It is tedious~~ 
+    - ~~More importantly, we can not use utilities like `EnsembleSummary` and plotting functions on the combined solution, which is a major limitation~~
+- ~~Extraction of the L1 solution `x` ENSEMBLE from the extended state vector `[X, Xhat, Xfilter, Lambda_hat]~~ (STATUS: Completed under previous item) 
+- Add explanation of solution vector for L1 = `[x, xhat, Lambda_hat, Filter-state]`
 - Extraction of subset of states: When we want to plot a subset of the states, we need to perform the `solution handling` but for the subset of states 
     - For example, is state space is in $\mathbb{R}^{12}$, we might want to extract $\{1,3,5\} \subset \{1,2,\ldots,12\}$. So something like `solution handlineg` with an additional argument. Without the argument, it will extract all the states as above. 
-- Control logging, will need to also create ensemble sol objects for each of these 
+- Control logging, will need to also create ensemble sol objects for each of these (STATUS: Awaiting verification) 
     - Baseline 
     - L1
     - TotalThe 
