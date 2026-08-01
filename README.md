@@ -311,13 +311,16 @@ var_vals = data["var"]
     - Can use markdown to explain the example and code cells to run it
     - Embed the notebook in README if it can be done. Also then auto updates. 
 - Python FRONT END: research and see if there is a viable solution
+- Parallelized empirical statistics computatation (STATUS: Partial)
+    - Alread setup multithreading supported function `ensemble_stats` in `examples/ex1/doubleintegrator1D.jl`
+    - Will need to finalize and possibly move to `src/` for general use.
+    - Inclusion of GPU support?
 - IMPORTANCE SAMPLING
 - Parallelized plot utilities (multithreading loops/?)
 
 ### Deferred TODOs
 
 - Cleanup for registration with @JuliaRegistrator
-- Parallelized empirical distributions
 - warmup with flag `warmup=:true`
 - Sharper bounds computation (empirically)
 - Add ```struct``` wrappers to auto extend necessary function signatures to the complete ```(t,x,dynamics_params)``` for GPU computation.
