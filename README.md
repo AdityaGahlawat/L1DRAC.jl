@@ -72,6 +72,8 @@ L1DRAC/
 
 Explore the package as an interactive dependency graph — which function calls which, across all files — using [DependencyAtlas.jl](https://codeberg.org/karei/DependencyAtlas.jl).
 
+For the companion view with the routing conditions written on the arrows — one flowchart per `src/` file, including how multiple dispatch picks each method — see [docs/CALL-FLOWS.md](docs/CALL-FLOWS.md).
+
 In the Julia REPL (your own environment):
 
 ```julia
@@ -102,9 +104,26 @@ Computation time benchmark on a simple 2-D system.
 **Hardware:** Intel i9-10920X (24 threads), 3x NVIDIA RTX A4000 (16GB each)
 
 
+## Example - Jupyter notebook
 
-### Example 
+The example is also available as a [Jupyter notebook](https://jupyter.org/install):
+[`examples/ex1/doubleintegrator1D.ipynb`](examples/ex1/doubleintegrator1D.ipynb)
+For multithreading, start Julia in target diectory in a new terminal with 
+```bash
+$ JULIA_NUM_THREADS=auto julia
+```
+Run the following sequentially in the REPL:
+```julia
+julia> ] add IJulia # Only required the first time 
+julia> using IJulia
+julia> jupyterlab(`--no-browser`, verbose=true, dir="/path/to/your/directory") # Installs Jupyterlab if not available on PATH (first time only) 
+```
+The flags `` `--no-browser`, verbose=true`` can be removed if you want jupyterlab to automatically launch in your browser. When the terminal is launched from the desired directory, set `dir=pwd()`. 
+
+## Example - Script (to be updated)
 **Source:** [`examples/ex1/doubleintegrator1D.jl`](examples/ex1/doubleintegrator1D.jl)
+
+
 ```julia
 using L1DRAC
 using CUDA
@@ -245,24 +264,20 @@ end
 
 ### Saving Data
 
-Save simulation data to JLD2 files for post-processing and plotting. In this example we use the wrapper `log_state_results` to call package's `state_logging` function 
+Save simulation data to JLD2 files for post-processing and plotting — one direct call to the package's `state_logging` function after a run:
 
 ```julia
-# Wrapper
-function log_state_results(setup, solutions; path=joinpath(@__DIR__, "sol_logs"))
-    state_logging(setup.system_dimensions;
-        sol_nominal=solutions.nominal_sol,
-        sol_true=solutions.true_sol,
-        sol_L1=solutions.L1_sol,
-        path=path)
-end
+setup, sols = main(Ntraj=1000)
 
-# Save simulation data to JLD2 files
-log_state_results(setup, solutions)
+# Save all three systems
+state_logging(sols; path="sol_logs/")
+
+# Or save a subset — same Symbols as run_simulations
+state_logging(sols; systems=[:L1_sys], path="sol_logs/")
 ```
 
-
-- **`path`** — Output directory (default `"sol_logs/"`, created automatically if it doesn't exist)
+- **`systems`** — which systems to save (default: all three): `:nominal_sys`, `:true_sys`, `:L1_sys`
+- **`path`** — Output directory (default `"sol_logs/"` in the folder Julia was launched from; created automatically if it doesn't exist)
 - **Returns** — Named tuple of file paths: `(nominal=..., true_sys=..., L1=...)`
 - **File names** — `states_nominal.jld2`, `states_true.jld2`, `states_L1.jld2`
 
@@ -298,27 +313,31 @@ var_vals = data["var"]
 
 ## TODO
 
-- Solution handling for multi GPU to recombine solutions into a single `EnsembleSolution` instead of deconstructing each and combining them, in arrays
-    - It is tedious 
-    - More importantly, we can not use utilities like `EnsembleSummary` and plotting functions on the combined solution, which is a major limitation
-- Extraction of the L1 solution `x` ENSEMBLE from the extended state vector `[X, Xhat, Xfilter, Lambda_hat]` 
-    - Add explanation of solution vector for L1 = `[x, xhat, Lambda_hat, Filter-state]`
+- ~~Solution handling for multi GPU to recombine solutions into a single `EnsembleSolution` instead of deconstructing each and combining them, in arrays~~ (STATUS: Complete)
+    - ~~It is tedious~~ 
+    - ~~More importantly, we can not use utilities like `EnsembleSummary` and plotting functions on the combined solution, which is a major limitation~~
+- ~~Extraction of the L1 solution `x` ENSEMBLE from the extended state vector `[X, Xhat, Xfilter, Lambda_hat]~~ (STATUS: Completed under previous item) 
+- Add explanation of solution vector for L1 = `[x, xhat, Lambda_hat, Filter-state]`
 - Extraction of subset of states: When we want to plot a subset of the states, we need to perform the `solution handling` but for the subset of states 
     - For example, is state space is in $\mathbb{R}^{12}$, we might want to extract $\{1,3,5\} \subset \{1,2,\ldots,12\}$. So something like `solution handlineg` with an additional argument. Without the argument, it will extract all the states as above. 
-- Control logging, will need to also create ensemble sol objects for each of these 
+- Control logging, will need to also create ensemble sol objects for each of these (STATUS: Awaiting verification) 
     - Baseline 
     - L1
-    - Total
+    - TotalThe 
 - **Convert example to Jupyter notebook** (within vscode, which should also yield a separate notebook)
     - Can use markdown to explain the example and code cells to run it
     - Embed the notebook in README if it can be done. Also then auto updates. 
 - Python FRONT END: research and see if there is a viable solution
+- Parallelized empirical statistics computatation (STATUS: Partial)
+    - Alread setup multithreading supported function `ensemble_stats` in `examples/ex1/doubleintegrator1D.jl`
+    - Will need to finalize and possibly move to `src/` for general use.
+    - Inclusion of GPU support?
+- IMPORTANCE SAMPLING
 - Parallelized plot utilities (multithreading loops/?)
 
 ### Deferred TODOs
 
 - Cleanup for registration with @JuliaRegistrator
-- Parallelized empirical distributions
 - warmup with flag `warmup=:true`
 - Sharper bounds computation (empirically)
 - Add ```struct``` wrappers to auto extend necessary function signatures to the complete ```(t,x,dynamics_params)``` for GPU computation.
