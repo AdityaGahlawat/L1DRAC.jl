@@ -104,9 +104,26 @@ Computation time benchmark on a simple 2-D system.
 **Hardware:** Intel i9-10920X (24 threads), 3x NVIDIA RTX A4000 (16GB each)
 
 
+## Example - Jupyter notebook
 
-### Example 
+The example is also available as a [Jupyter notebook](https://jupyter.org/install):
+[`examples/ex1/doubleintegrator1D.ipynb`](examples/ex1/doubleintegrator1D.ipynb)
+For multithreading, start Julia in target diectory in a new terminal with 
+```bash
+$ JULIA_NUM_THREADS=auto julia
+```
+Run the following sequentially in the REPL:
+```julia
+julia> ] add IJulia # Only required the first time 
+julia> using IJulia
+julia> jupyterlab(`--no-browser`, verbose=true, dir="/path/to/your/directory") # Installs Jupyterlab if not available on PATH (first time only) 
+```
+The flags `` `--no-browser`, verbose=true`` can be removed if you want jupyterlab to automatically launch in your browser. When the terminal is launched from the desired directory, set `dir=pwd()`. 
+
+## Example - Script (to be updated)
 **Source:** [`examples/ex1/doubleintegrator1D.jl`](examples/ex1/doubleintegrator1D.jl)
+
+
 ```julia
 using L1DRAC
 using CUDA

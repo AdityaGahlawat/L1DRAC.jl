@@ -1,5 +1,4 @@
 ## L1DRAC for a 1D Double Integrator
-
 using L1DRAC
 using CUDA
 using LinearAlgebra
@@ -10,6 +9,10 @@ using Plots
 using JLD2
 using DependencyAtlas
 using DifferentialEquations
+
+# %% [markdown]
+# # L1DRAC for a 1D Double Integrator
+# - $\frac{1}{2}$ 
 
 ###################################################################
 ## SYSTEM SETUP
@@ -97,7 +100,7 @@ function main(; Ntraj = Int(1e1), max_GPUs=10,
 
     @info "Warmup run for JIT compilation"
     println("=====================================") 
-    warmup_setup = setup_system(; Ntraj = 10)
+    warmup_setup = setup_system(Ntraj = 10)
     run_simulations(warmup_setup; max_GPUs=max_GPUs, systems=systems);
 
     println("=====================================")
