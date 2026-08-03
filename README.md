@@ -120,6 +120,42 @@ julia> jupyterlab(`--no-browser`, verbose=true, dir="/path/to/your/directory") #
 ```
 The flags `` `--no-browser`, verbose=true`` can be removed if you want jupyterlab to automatically launch in your browser. When the terminal is launched from the desired directory, set `dir=pwd()`. 
 
+## Example - Python Frontend 
+
+The example also runs with a Python frontend and the Julia backend:
+[`examples/ex1/PyFront/doubleintegrator1D.ipynb`](examples/ex1/PyFront/doubleintegrator1D.ipynb)
+
+The mathematics lives in the companion file [`CompanionPyFront_doubleintegrator1D.jl`](examples/ex1/PyFront/CompanionPyFront_doubleintegrator1D.jl) (Julia), which the notebook loads. **To use your own dynamics:** copy the companion, edit the blocks marked `EDIT` — they are the problem definition (dynamics, uncertainties, distributions, parameters) — and point the notebook's `include` cell at your copy. Everything else — running, saving, loading, plotting — stays the same Python.
+
+**Prerequisites:** Julia 1.12 and Python 3 with the `venv` module (tested with Python 3.10).
+
+Install the Julia packages into your default environment:
+```bash
+$ julia
+```
+```julia
+julia> ] add https://github.com/AdityaGahlawat/L1DRAC.jl
+julia> ] add PythonCall@0.9.35 Distributions StaticArrays
+```
+PythonCall is pinned: it must match the `juliacall` version pip installs below. You can exit Julia after this step. 
+
+
+
+Build the Python environment, once, in a second terminal:
+```bash
+$ cd /path/to/<directory> # The folder holding the notebook and its companion
+$ python3 -m venv .venv
+$ source .venv/bin/activate
+$ python -m pip install --upgrade pip
+$ pip install "juliacall==0.9.35" numpy matplotlib jupyterlab ipykernel
+$ python -m ipykernel install --user --name l1drac-pyfront --display-name "Python 3 (L1DRAC PyFront)" 
+```
+Launch from that same terminal, with the environment still active:
+```bash
+$ jupyter lab --no-browser
+```
+Open `doubleintegrator1D.ipynb`, and select the kernel `Python 3 (L1DRAC PyFront)`, if not already auto-selected. 
+
 ## Example - Script (to be updated)
 **Source:** [`examples/ex1/doubleintegrator1D.jl`](examples/ex1/doubleintegrator1D.jl)
 
